@@ -1,0 +1,4 @@
+startup
+build --cxxopt=-std=c++2b
+build --noincompatible_sandbox_hermetic_tmp
+build --registry=https://raw.githubusercontent.com/NzSN/bazel-central-registry/main/
