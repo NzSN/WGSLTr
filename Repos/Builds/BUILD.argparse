@@ -1,0 +1,15 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+filegroup(
+    name = "argparse_srcs",
+    srcs = glob(["**"])
+)
+
+cmake(
+    name = "argparse",
+    lib_source = ":argparse_srcs",
+    out_headers_only = True,
+    out_include_dir = "include",
+    generate_args = ["-DARGPARSE_BUILD_SAMPLES=off", "-DARGPARSE_BUILD_TESTS=off"],
+    visibility = ["//visibility:public"],
+)
