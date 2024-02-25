@@ -1,42 +1,35 @@
 ------ MODULE WGSLTr ------
-CONSTANTS Source
-
-INIT == 0
-Parsing == 1
-Analysis == 2
-Transform == 3
+CONSTANTS Source, NULL
+VARIABLE treeInfo
 
 LOCAL INSTANCE Tree
 LOCAL INSTANCE Rule
 
+
 Tr == Instance Transformer
 
-TypeInvariant == /\ state = INIT
-
-Init(Rule, input) ==
-    /\ TypeInvariant
-    /\ Tr!UseRule(Rule)
-    /\ Tr!UseInput(input)
-
-Parse(input) ==
-    /\ state = INIT
-    /\ state' = Parsing
-    /\ Tr!Parse
+Init(rule_, input_) ==
+    /\ state = 0
+    /\ inRule(rule_)
+    /\ InTree(input_)
+    /] treeInfo = NULL
+    /\ Tr!Init(rule_, input_)
 
 Analysis ==
     /\ state = Parsing
     /\ state' = Analysis
+    \* TODO: Specify how to analyze ParseTree
+    /\ treeInfo' = 0
 
 Transform ==
     /\ state = Analysis
-    /\ state = Transform
-    /\ Tr!Trans
+    /\ Tr!Transform(treeInfo)
 
 Steps ==
     \E input \in Source:
         Parse(input)
 
-Spec ==
+Spec(rule_, input_) ==
     /\ Init
     /\ [][Steps]_{Tr}
 
