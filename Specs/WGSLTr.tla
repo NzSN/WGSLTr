@@ -1,5 +1,5 @@
 ------ MODULE WGSLTr ------
-CONSTANTS Source, NULL
+CONSTANTS NULL
 VARIABLE treeInfo
 
 LOCAL INSTANCE Tree
@@ -30,7 +30,7 @@ Steps ==
         Parse(input)
 
 Spec(rule_, input_) ==
-    /\ Init
+    /\ Init(rule_, input_, funcs_)
     /\ [][Steps]_{Tr}
 
 ===========================

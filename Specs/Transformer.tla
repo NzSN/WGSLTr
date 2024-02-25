@@ -10,8 +10,10 @@ LOCAL INSTANCE Rule
 TypeInvariant(rule_, input_) ==
     /\ InTree(input_)
     /\ InRule(rule_)
-    /\ transformer = [input |-> input_, output |-> NULL, rule |-> rule_,
-                      info |-> NULL]
+    /\ transformer = [input |-> input_,
+                      output |-> NULL,
+                      rule |-> rule_,
+                      info |-> NULL,]
 
 Init(rule_, input_) ==
     /\ state = 0
