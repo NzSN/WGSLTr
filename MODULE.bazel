@@ -12,4 +12,7 @@ bazel_dep(name = "chameleon", version = "0.0.1")
 
 # Non-Bazel dependencies
 repos = use_extension("@wgsltr//:Repos/repositories.bzl", "repositories_ext")
-use_repo(repos, "argparse")
+use_repo(repos,
+    # Repositories
+    "argparse",
+    "antlr4_runtime")

@@ -1,0 +1,15 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+filegroup(
+    name = "antlr4_runtime_srcs",
+    srcs = glob(["**"])
+)
+
+cmake(
+    name = "antlr4_runtime",
+    lib_source = "antlr4_runtime_srcs",
+    out_static_libs = ["libantlr4-runtime.a"],
+    out_include_dir = "include/antlr4-runtime",
+    generate_args = ["-DWITH_DEMO=off", "-DANTLR_BUILD_CPP_TESTS=off"],
+    visibility = ["//visibility:public"],
+)
