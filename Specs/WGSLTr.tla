@@ -28,10 +28,12 @@ Init ==
     /\ Tr!Init
     /\ TypeInvariant
 
-Setup(t) ==
+\* Setup a tree to be transformed
+\* and rules used to do transform.
+Setup(t, r) ==
     /\ state = InitStage
     /\ state' = SetupStage
-    /\ Tr!Setup(t)
+    /\ Tr!Setup(t, r)
 
 \* TODO: Specify analysis
 Analysis ==
@@ -49,13 +51,13 @@ Transform ==
 
 Done ==
   /\ state = TransformStage
-  /\ Tr!Done
   /\ transformer.output \in Trees
   /\ UNCHANGED <<transformer, state, trState>>
 
 Steps ==
   \/ Analysis
-  \/ \E t \in Trees: Setup(t)
+  \/ \E t \in Trees:
+      \E r \in Rules: Setup(t, r)
   \/ Transform
   \/ Done
 

@@ -10,22 +10,24 @@ VARIABLES transformer, state
 LOCAL INSTANCE Tree
 LOCAL INSTANCE Rule
 
-TypeInvariant ==
-    /\ transformer = [input |-> NULL, output |-> NULL,
-                      rule |-> NULL, info |-> NULL]
-
 InitStage == 0
 SetupStage == 1
 TransformStage == 2
+
+TypeInvariant ==
+    /\ transformer = [input |-> NULL, output |-> NULL,
+                      rule |-> NULL, info |-> NULL]
 
 Init ==
     /\ state = InitStage
     /\ TypeInvariant
 
-Setup(t) ==
+Setup(t, r) ==
   /\ state = InitStage
   /\ state' = SetupStage
-  /\ transformer' = [transformer EXCEPT !.input = t]
+  /\ transformer' = [transformer EXCEPT
+                     !.input = t,
+                     !.rule  = r]
 
 Transform ==
     \* TODO: use input as output directly, due how to do transformation
@@ -34,15 +36,5 @@ Transform ==
     /\ state' = TransformStage
     /\ transformer' = [transformer EXCEPT
                        !.output = transformer.input]
-
-Done ==
-  /\ state = TransformStage
-  /\ UNCHANGED <<transformer, state>>
-
-Steps ==
-  \/ \E t \in Trees: Setup(t)
-  \/ Transform
-  \/ Done
-Spec == Init /\ [][Steps]_<<transformer, state>>
 
 =================================
