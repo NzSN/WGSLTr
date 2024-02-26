@@ -4,6 +4,9 @@ VARIABLE transformer, state, trState
 
 LOCAL INSTANCE Tree WITH NULL <- NULL
 LOCAL INSTANCE Rule WITH NULL <- NULL
+LOCAL INSTANCE Analyzer WITH
+  NULL <- NULL,
+  Trees <- Trees
 
 Tr == INSTANCE Transformer WITH
   NULL <- NULL,
@@ -13,8 +16,9 @@ Tr == INSTANCE Transformer WITH
   Trees <- Trees
 
 InitStage     == 0
-AnalysisStage == 1
-TransformStage == 2
+SetupStage    == 1
+AnalysisStage == 2
+TransformStage == 3
 
 TypeInvariant ==
   /\ Tr!TypeInvariant
@@ -24,15 +28,24 @@ Init ==
     /\ Tr!Init
     /\ TypeInvariant
 
-Analysis ==
+Setup(t) ==
     /\ state = InitStage
-    /\ state' = AnalysisStage
-    /\ UNCHANGED <<transformer, trState>>
+    /\ state' = SetupStage
+    /\ Tr!Setup(t)
 
-Transform(t) ==
+\* TODO: Specify analysis
+Analysis ==
+    /\ state = SetupStage
+    /\ state' = AnalysisStage
+    /\ transformer.input # NULL
+    /\ transformer' = [transformer EXCEPT
+                       !.info = Analyze(@.input)]
+    /\ UNCHANGED <<trState>>
+
+Transform ==
     /\ state = AnalysisStage
     /\ state' = TransformStage
-    /\ Tr!Transform(t)
+    /\ Tr!Transform
 
 Done ==
   /\ state = TransformStage
@@ -42,7 +55,8 @@ Done ==
 
 Steps ==
   \/ Analysis
-  \/ \E t \in Trees: Transform(t)
+  \/ \E t \in Trees: Setup(t)
+  \/ Transform
   \/ Done
 
 Spec ==
