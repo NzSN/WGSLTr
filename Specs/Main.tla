@@ -1,16 +1,30 @@
 --------- MODULE Main ---------
 CONSTANTS NULL
+VARIABLES state, trState, transformer
 
-LOCAL INSTANCE Tree
-LOCAL INSTANCE Rule
-LOCAL INSTANCE WGSLTr
+LOCAL INSTANCE Tree WITH NULL <- NULL
+LOCAL INSTANCE Rule WITH NULL <- NULL
 
+SourceTree   == AddNode(AddNode(Singleton(0), 0, 1), 0, 2)
+SourceTree_1 == AddNode(AddNode(Singleton(0), 0, 1), 0, 3)
+TargetTree   == AddNode(AddNode(Singleton(0), 0, 2), 0, 1)
+Trees == {
+    SourceTree,
+    TargetTree
+}
+WhereExpr[t \in Trees] == TRUE
 
-WhereExpr[t \in {SourceTree}] == TRUE
-SourceTree == AddNode(AddNode(Singleton(0), 0, 1), 0, 2)
-RuleConfig == Rule(AddNode(AddNode(Singleton(0), 0, 1), 0, 2),
-                   WhereExpr,
-                   AddNode(AddNode(Singleton(0), 0, 2), 0, 1))
-Spec == WGSLTr!Spec(RuleConfig, SourceTree)
+RuleConfig == Rule(SourceTree, WhereExpr, TargetTree)
 
+Rules == {RuleConfig}
+
+Compiler == INSTANCE WGSLTr WITH
+    NULL <- NULL,
+    state <- state,
+    trState <- trState,
+    transformer <- transformer,
+    Trees <- Trees,
+    Rules <- Rules
+
+Spec == Compiler!Spec
 ===============================

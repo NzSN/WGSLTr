@@ -1,36 +1,52 @@
 ------ MODULE WGSLTr ------
-CONSTANTS NULL
-VARIABLE treeInfo
+CONSTANTS NULL, Rules, Trees
+VARIABLE transformer, state, trState
 
-LOCAL INSTANCE Tree
-LOCAL INSTANCE Rule
+LOCAL INSTANCE Tree WITH NULL <- NULL
+LOCAL INSTANCE Rule WITH NULL <- NULL
 
+Tr == INSTANCE Transformer WITH
+  NULL <- NULL,
+  transformer <- transformer,
+  state <- trState,
+  Rules <- Rules,
+  Trees <- Trees
 
-Tr == Instance Transformer
+InitStage     == 0
+AnalysisStage == 1
+TransformStage == 2
 
-Init(rule_, input_) ==
-    /\ state = 0
-    /\ inRule(rule_)
-    /\ InTree(input_)
-    /] treeInfo = NULL
-    /\ Tr!Init(rule_, input_)
+TypeInvariant ==
+  /\ Tr!TypeInvariant
+
+Init ==
+    /\ state = InitStage
+    /\ Tr!Init
+    /\ TypeInvariant
 
 Analysis ==
-    /\ state = Parsing
-    /\ state' = Analysis
-    \* TODO: Specify how to analyze ParseTree
-    /\ treeInfo' = 0
+    /\ state = InitStage
+    /\ state' = AnalysisStage
+    /\ UNCHANGED <<transformer, trState>>
 
-Transform ==
-    /\ state = Analysis
-    /\ Tr!Transform(treeInfo)
+Transform(t) ==
+    /\ state = AnalysisStage
+    /\ state' = TransformStage
+    /\ Tr!Transform(t)
+
+Done ==
+  /\ state = TransformStage
+  /\ Tr!Done
+  /\ transformer.output \in Trees
+  /\ UNCHANGED <<transformer, state, trState>>
 
 Steps ==
-    \E input \in Source:
-        Parse(input)
+  \/ Analysis
+  \/ \E t \in Trees: Transform(t)
+  \/ Done
 
-Spec(rule_, input_) ==
-    /\ Init(rule_, input_, funcs_)
-    /\ [][Steps]_{Tr}
+Spec ==
+    /\ Init
+    /\ [][Steps]_<<transformer, state, trState>>
 
 ===========================

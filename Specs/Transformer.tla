@@ -1,32 +1,41 @@
 ------ MODULE Transformer -------
 \* This specification is also a specification of
 \* how api layer of chameleon look like.
-CONSTANTS NULL
-VARIABLES transformer
+CONSTANTS NULL, Rules, Trees
+VARIABLES transformer, state
 
 LOCAL INSTANCE Tree
 LOCAL INSTANCE Rule
 
-TypeInvariant(rule_, input_) ==
-    /\ InTree(input_)
-    /\ InRule(rule_)
-    /\ transformer = [input |-> input_,
+TypeInvariant ==
+    /\ transformer = [input |-> NULL,
                       output |-> NULL,
-                      rule |-> rule_,
-                      info |-> NULL,]
+                      rule |-> NULL,
+                      info |-> NULL]
 
-Init(rule_, input_) ==
-    /\ state = 0
-    /\ TypeInvariant(rule_, input_)
+InitStage == 0
+TransformStage == 1
 
-Transform(info_) ==
+Init ==
+    /\ state = InitStage
+    /\ TypeInvariant
+
+Transform(input) ==
     \* TODO: use input as output directly, due how to do transformation
     \*       is still not specified yet.
-    /\ [transformer' EXCEPT ![output] = transformer[input]
+    /\ state = InitStage
+    /\ state' = TransformStage
+    /\ transformer' = [transformer EXCEPT
+                       !.input = input,
+                       !.output = input]
 
-Steps(info_) == Transform(info_)
-Spec(rule_, input_, info_) ==
-    /\ Init(rule_, input_)
-    /\ [][Steps(info_)]_{transformer}
+Done ==
+  /\ state = TransformStage
+  /\ UNCHANGED <<transformer, state>>
+
+Steps ==
+  \/ \E t \in Trees: Transform(t)
+  \/ Done
+Spec == Init /\ [][Steps]_<<transformer, state>>
 
 =================================
