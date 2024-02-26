@@ -1,0 +1,18 @@
+filegroup(
+    name = "base",
+    srcs = ["Types.h"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "transformer_srcs",
+    srcs = ["Transformer.h",
+            "Transformer.cc",
+            ":base"],
+    visibility = ["//visibility:public"]
+)
+
+cc_test(
+    name = "transformer_unittests",
+    srcs = [":transformer_srcs", "Transformer_Unittests.cc"]
+)
