@@ -1,11 +1,28 @@
+filegroup(
+    name = "wgsltr_main_srcs",
+    srcs = ["main.cc", "WGSLTr.cc", "WGSLTr.h", "Config.h"]
+)
+
 cc_binary(
-    name = "WGSLTr",
-    srcs = ["main.cc", "WGSLTr.cc", "WGSLTr.h", "Config.h",
+    name = "wgsltr",
+    srcs = [":wgsltr_main_srcs",
             # Transformer
             "@wgsltr//src:transformer_srcs"],
     deps = ["@argparse//:argparse",
             "@chameleon//:chameleon",
             "@antlr4_runtime//:antlr4_runtime"],
-    copts = ["-DENABLE_GC=false"],
+    includes = ["../src"],
+)
+
+cc_test(
+    name = "wgsltr_unittests",
+    srcs = ["WGSLTr.h", "WGSLTr.cc", "Config.h",
+            "WGSLTr_Unittests.cc",
+            "@wgsltr//src:base",
+            "@wgsltr//src:transformer_srcs"],
+    deps = ["@argparse//:argparse",
+            "@chameleon//:chameleon",
+            "@com_google_googletest//:gtest_main",
+            "@antlr4_runtime//:antlr4_runtime"],
     includes = ["../src"],
 )

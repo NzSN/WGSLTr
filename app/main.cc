@@ -4,8 +4,6 @@
 #include "WGSLTr.h"
 #include "Config.h"
 
-#include "Transformer.h"
-
 int main(int argc, char *argv[]) {
   argparse::ArgumentParser program("WGSLTr", WGSLTr_VERSION);
 
@@ -27,6 +25,13 @@ int main(int argc, char *argv[]) {
   }
 
   std::ifstream input(program.get("--input"));
+  std::ofstream output(program.get("--output"));
+
+  WGSLTr::WGSLTrCompiler compiler;
+  compiler.Setup(&input);
+
+  auto t_transed = compiler.Compile();
+  output << t_transed.value();
 
   return 0;
 }

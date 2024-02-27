@@ -1,27 +1,34 @@
-#ifndef TRANSFORMER_H
-#define TRANSFORMER_H
+#ifndef WGSLTr_TRANSFORMER_H
+#define WGSLTr_TRANSFORMER_H
 
 #include <istream>
+#include <assert.h>
+
 #include "Types.h"
 
-
+#include "Api/Transformer.h"
 
 namespace WGSLTr {
-namespace Transformer {
 
 class Transformer {
 public:
-  Transformer(): tree_{nullptr} {}
+  Transformer(std::initializer_list<Types::Rule> rules):
+    input_{nullptr}, tr_{rules} {}
 
-  void Setup(std::istream* s, );
-  Types::ParseTree* Transform();
+  void Setup(std::istream* s) { input_ = s; }
+  void Parse() {
+    assert((false && "Transformer::Parse() is not implement"));
+  }
+
+  std::optional<std::string> Transform() {
+    return tr_(input_);
+  }
 private:
-  Types::ParseTree* tree_;
+  std::istream* input_;
+  Chameleon::api::Transformer<GET_LANG_TYPE(WGSL)> tr_;
 };
 
 
-} // Transformer
 } // WGSLTr
 
-
-#endif /* TRANSFORMER_H */
+#endif /* WGSLTr_TRANSFORMER_H */

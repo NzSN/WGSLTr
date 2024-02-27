@@ -7,7 +7,6 @@ filegroup(
 filegroup(
     name = "transformer_srcs",
     srcs = ["Transformer.h",
-            "Transformer.cc",
             ":base"],
     visibility = ["//visibility:public"]
 )

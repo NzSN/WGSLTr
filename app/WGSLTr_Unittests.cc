@@ -1,29 +1,39 @@
 #include <gtest/gtest.h>
 #include "WGSLTr.h"
 
-#include <fstream>
+#include <sstream>
+
+namespace WGSLTr {
 
 TEST(WGSLTrTests, Basic) {
-  WGSLTr compiler;
+  WGSLTrCompiler compiler;
 
-  std::ifstream s{"..."};
+  std::istringstream s{"fn main() { a = b + c; }"};
 
   // Setup Phase
 
   // Setup targetsource that expect to
   // parse.
-  compiler.setup(s);
-  compiler.parse();
+  compiler.Setup(&s);
+
+  // TODO: Implement WGSLTrCompiler::Parse()
+  // compiler.Parse();
 
   // Analysis Phase
   // Information of ParseTree.
-  auto t = compiler.targetTree();
-  Analyzer analyzer;
-  auto info = analyzer(t);
+  // TODO: Need to implement.
+  // auto t = compiler.targetTree();
+  // Analyzer analyzer;
+  // auto info = analyzer(t);
 
-  compiler.setAnalyzedInfo(info);
+  // compiler.setAnalyzedInfo(info);
 
   // Transform Phase
   // Finally, we get outpout tree.
-  auto t_transed = compiler.compile();
+  auto t_transed = compiler.Compile();
+
+  std::cout << t_transed.value() << std::endl;
 }
+
+
+} // WGSLTr
