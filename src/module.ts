@@ -1,15 +1,23 @@
-import { Tree } from "web-tree-sitter";
+import { Tree, Node } from "web-tree-sitter";
 
-type ModID = string;
+type ModPath = string;
 export class Module {
-    private _ident: string;
+    public static all: Map<ModPath, Module>;
+
+    private _path: string;
     private _tree: Tree;
     private _deps: Module[]   = [];
     private _depBys: Module[] = [];
 
-    constructor(ident: ModID, tree: Tree) {
-        this._ident = ident;
+    constructor(path: ModPath, tree: Tree) {
+        this._path = path;
         this._tree = tree;
+
+        Module.all.set(path, this);
+    }
+
+    public get rootNode(): Node {
+        return this._tree.rootNode;
     }
 
     public dep(m: Module) {
