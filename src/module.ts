@@ -2,7 +2,7 @@ import { Tree, Node } from "web-tree-sitter";
 
 type ModPath = string;
 export class Module {
-    public static all: Map<ModPath, Module>;
+    public static all: Map<ModPath, Module> = new Map();
 
     private _path: string;
     private _tree: Tree;
@@ -20,11 +20,25 @@ export class Module {
         return this._tree.rootNode;
     }
 
+    public isDepOn(may_dep: Module) {
+        return this._deps.find((m: Module) => {
+            return may_dep.path == m.path;
+        }) != undefined;
+    }
+
+    public isDepBy(may_dep_by: Module) {
+        return may_dep_by.isDepOn(this);
+    }
+
     public dep(m: Module) {
         this._deps.push(m);
     }
 
     public depBy(m: Module) {
         this._depBys.push(m);
+    }
+
+    public get path() {
+        return this._path;
     }
 }

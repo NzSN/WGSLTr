@@ -7,7 +7,7 @@ describe("Representation Unittests", () => {
 
     test("Introduction", async () => {
         let source = (n:number) => {
-            return "fn main() {${n}};" };
+            return `fn main() {${n}};` };
 
         let parser: WGSLParser = new WGSLParser();
 
@@ -15,10 +15,13 @@ describe("Representation Unittests", () => {
             let mod: Module | null = await parser.parseAsModule("M", source(n));
 
             if (mod == null) return false;
-            let p: Presentation = new Presentation(mod);
-            return p.present().reduce(
+            let p: Presentation<void> = new Presentation(mod);
+
+            let present = p.present().reduce(
                 (acc,cur) => { return acc + cur.literal; },
-                "") == source(n).replace('/\s/g', '');
+                "");
+
+            return present == source(n).replace(/\s/g, '');
         }));
     })
 

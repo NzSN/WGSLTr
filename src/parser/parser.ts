@@ -3,6 +3,7 @@ import { strict as assert } from 'assert';
 import { WASM_MODULE_PATHS } from '../constants';
 import { Parser, Language, Tree, TreeCursor, Node } from 'web-tree-sitter';
 import { Module } from '../module';
+import { relativeModPath } from './utility';
 
 type WGSLNodeType = string;
 
@@ -33,20 +34,23 @@ export class WGSLParser {
         assert(tree != null);
 
         let mod = new Module(path, tree);
-        let s: Searcher = new Searcher(
+        let s_import: Searcher = new Searcher(
             tree.rootNode, 'import');
-        const imports: Node[] = s.searching_all(tree.rootNode.walk());
+        const imports: Node[] =
+            s_import.searching_all(tree.rootNode.walk())
+                .filter((n: Node) => n.isNamed);
 
-        imports.forEach(async (n: Node) => {
-            let s: Searcher = new Searcher(n, 'module_path');
-            let mod_path: Node | null = s.searching_next(n.walk());
+        for (const n of imports) {
+            let s_mod_path: Searcher = new Searcher(n, 'module_path');
+            let mod_path: Node | null = s_mod_path.searching_next(n.walk());
             assert(mod_path != null);
-            let dep_mod = await this.parseAsModuleFromFile(mod_path.text)
+
+            let dep_mod = await this.parseAsModuleFromFile(
+                relativeModPath(mod, mod_path));
             assert(dep_mod != null);
             dep_mod.depBy(mod);
             mod.dep(dep_mod);
-        });
-
+        }
         return mod;
     }
 }
@@ -111,10 +115,11 @@ export function gotoNextNodeWithTypes(
     rootNode: Node | null = null): Node | null {
 
     preorderIterate(cursor, cursor.currentNode);
-    return iterateUntil(cursor,
-                        (n: Node) =>
-        node_types.find((nt: WGSLNodeType) => nt == n.type) != undefined,
-                       rootNode);
+    return iterateUntil(
+        cursor,
+        (n: Node) => node_types.find(
+            (nt: WGSLNodeType) => nt == n.type) != undefined,
+        rootNode);
 }
 
 export class Searcher {

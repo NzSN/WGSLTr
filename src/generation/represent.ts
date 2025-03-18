@@ -15,29 +15,29 @@ export class Token {
     }
 
     public concat(t: Token): Token {
-        this._literal = this._literal + " " + t._literal;
+        this._literal = this._literal + t._literal;
         return this;
     }
 }
 
-interface TokenOperator {
+interface TokenOperator<T> {
     ident: string;
-    eval(t: Token): Token;
+    eval(t: Token, extra: T): Token;
 }
 
-export class Presentation {
+export class Presentation<T> {
     public readonly module: Module;
-    private _tokenOps: TokenOperator[] = [];
+    private _tokenOps: TokenOperator<T>[] = [];
 
     constructor(m: Module) {
         this.module = m;
     }
 
-    public addProcessor(t: TokenOperator) {
+    public addProcessor(t: TokenOperator<T>) {
         this._tokenOps.push(t);
     }
 
-    public present(): Token[] {
+    public present(extra: T): Token[] {
         let tokens: Token[] = [];
 
         const rootNode = this.module.rootNode;
@@ -52,10 +52,14 @@ export class Presentation {
                        Module.all.has(module_path_node.text));
 
                 let dep_module = Module.all.get(module_path_node.text);
-                tokens = tokens.concat(new Presentation(dep_module as Module).present())
+                tokens = tokens.concat(new Presentation(dep_module as Module).present(extra));
             } else {
                 if (isLeave(current)) {
-                    tokens.push(new Token(current.text));
+                    let token = new Token(current.text);
+                    this._tokenOps.forEach((op: TokenOperator<T>) => {
+                        token = op.eval(token, extra);
+                    })
+                    tokens.push(token);
                 }
             }
             current = preorderIterate(cursor, rootNode);
