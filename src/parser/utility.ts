@@ -22,14 +22,21 @@ export function wgslPathComplete(path: Path): Path {
     }
 }
 
-export function relativeModPath(current_mod: Module, module_path_node: Node) {
-    assert(module_path_node.type == "module_path");
-    let import_path = module_path_node.text
+export function importModPathStr(current_mod: string, import_mod_path: string) {
+    let import_path = import_mod_path
         .replace(/\'/g, "")
         .replace(/\"/, "")
         .replace(/;/, "");
     let path = PathUtil.join(
-        PathUtil.dirname(current_mod.path),
+        PathUtil.dirname(current_mod),
         import_path);
     return "./" + wgslPathComplete(path)
+
+}
+
+export function relativeModPath(
+    current_mod: Module, module_path_node: Node) {
+
+    assert(module_path_node.type == "module_path");
+    return importModPathStr(current_mod.path, module_path_node.text);
 }
