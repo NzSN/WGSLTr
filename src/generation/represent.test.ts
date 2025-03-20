@@ -15,7 +15,7 @@ describe("Representation Unittests", () => {
             let mod: Module | null = await parser.parseAsModule("M", source(n));
 
             if (mod == null) return false;
-            let p: Presentation<void> = new Presentation(mod);
+            let p: Presentation = new Presentation(mod);
 
             let present = p.present().reduce(
                 (acc,cur) => { return acc + cur.literal; },
@@ -30,10 +30,10 @@ describe("Representation Unittests", () => {
 
         let mod: Module | null =
             await parser.parseAsModuleFromFile(
-                "./Test/wgsl_samples/A.wgsl");
+                "./Test/wgsl_samples/abc.wgsl");
         expect(mod != null).toBeTruthy();
 
-        let p: Presentation<void> = new Presentation(mod as Module);
+        let p: Presentation = new Presentation(mod as Module);
         let present = p.present().reduce(
             (acc,cur) => acc + " " + cur.literal, "");
         console.log(present);

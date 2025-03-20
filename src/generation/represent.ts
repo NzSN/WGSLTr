@@ -3,29 +3,7 @@ import { Node, TreeCursor } from 'web-tree-sitter';
 import { Module } from "../module";
 import { Searcher, isLeave, preorderIterate } from "../parser/parser";
 import { importModPathStr } from '../parser/utility';
-
-export class Token {
-    private _literal: string;
-
-    constructor(s: string) {
-        this._literal = s;
-    }
-
-    public get literal(): string {
-        return this._literal
-    }
-
-    public concat(t: Token): Token {
-        this._literal = this._literal + t._literal;
-        return this;
-    }
-}
-
-export interface TokenOperator<T> {
-    ident: string;
-    eval(t: Token, extra: T): Token;
-}
-
+import { Token, TokenOPEnv, TokenOperator, ModuleQualifier, Obfuscator } from './token_processors';
 
 enum FilterState {
     Ready,
@@ -95,29 +73,35 @@ class ImportStmtFilter implements TokenFilter {
     }
 }
 
-export class Presentation<T> {
+export class Presentation {
     public readonly module: Module;
-    private _tokenOps: TokenOperator<T>[] = [];
+    private _tokenOps: TokenOperator<TokenOPEnv>[] = [
+        new ModuleQualifier(),
+        new Obfuscator(),
+    ];
     private _cwd: string = "";
     private _import_filter: ImportStmtFilter = new ImportStmtFilter();
+    private _op_env: TokenOPEnv;
 
     constructor(m: Module) {
         this.module = m;
         this._cwd = this.module.path;
+        this._op_env = new TokenOPEnv();
+        this._op_env.module = this.module;
     }
 
-    public addProcessor(t: TokenOperator<T>) {
+    public addProcessor(t: TokenOperator<TokenOPEnv>) {
         this._tokenOps.push(t);
     }
 
-    private tokenProc(tokens: Token[], token: Token, extra: T) {
-        this._tokenOps.forEach((op: TokenOperator<T>) => {
-            token = op.eval(token, extra);
+    private tokenProc(tokens: Token[], token: Token) {
+        this._tokenOps.forEach((op: TokenOperator<TokenOPEnv>) => {
+            token = op.eval(token, this._op_env);
         });
         tokens.push(token);
     }
 
-    public present(extra: T): Token[] {
+    public present(): Token[] {
         let tokens: Token[] = [];
 
         const rootNode = this.module.rootNode;
@@ -136,23 +120,23 @@ export class Presentation<T> {
                 assert(Module.all.has(module_path));
 
                 let dep_module = Module.all.get(module_path);
-                tokens = tokens.concat(new Presentation(dep_module as Module).present(extra));
+                tokens = tokens.concat(new Presentation(dep_module as Module).present());
             } else {
-                /* Filter out import statements */
                 if (isLeave(current)) {
-                    let token: Token = new Token(current.text);
-
+                    let token: Token = new Token(current);
+                    /* Filter out import statements */
                     if (!this._import_filter.filter(token)) {
                         current = preorderIterate(cursor, rootNode);
                         continue;
                     } else {
                         if (this._import_filter.state == FilterState.ROLLBACK) {
                             this._import_filter.pendingTokens.forEach((t: Token) => {
-                                this.tokenProc(tokens, t, extra);
+                                this.tokenProc(tokens, t);
                             });
                         }
                     }
-                    this.tokenProc(tokens, token, extra);
+
+                    this.tokenProc(tokens, token);
                 }
             }
             current = preorderIterate(cursor, rootNode);

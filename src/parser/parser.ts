@@ -11,7 +11,7 @@ export class WGSLParser {
     private parser_: Parser | null = null;
     private typescript_lang: Language | null = null;
 
-    async parse(source: string): Promise<Tree | null> {
+    public async parse(source: string): Promise<Tree | null> {
         if (this.parser_ == null) {
             await Parser.init();
             this.parser_ = new Parser();
@@ -23,13 +23,13 @@ export class WGSLParser {
         return this.parser_.parse(source);
     }
 
-    async parseAsModuleFromFile(path: string): Promise<Module | null> {
+    public async parseAsModuleFromFile(path: string): Promise<Module | null> {
         let source_content = readFileSync(
             path, {encoding: 'utf8', flag: 'r'});
         return this.parseAsModule(path, source_content);
     }
 
-    async parseAsModule(path: string, source: string): Promise<Module | null> {
+    public async parseAsModule(path: string, source: string): Promise<Module | null> {
         let tree = await this.parse(source);
         assert(tree != null);
 
@@ -41,17 +41,36 @@ export class WGSLParser {
                 .filter((n: Node) => n.isNamed);
 
         for (const n of imports) {
-            let s_mod_path: Searcher = new Searcher(n, 'module_path');
-            let mod_path: Node | null = s_mod_path.searching_next(n.walk());
-            assert(mod_path != null);
-
-            let dep_mod = await this.parseAsModuleFromFile(
-                relativeModPath(mod, mod_path));
-            assert(dep_mod != null);
-            dep_mod.depBy(mod);
-            mod.dep(dep_mod);
+            await this.parseExternalSymbols(mod, n);
         }
         return mod;
+    }
+
+    private async parseExternalSymbols(mod: Module, node: Node) {
+        let s_mod: Searcher = new Searcher(node, 'module_path');
+        let s_symbols: Searcher = new Searcher(node, 'import_list');
+
+        let mod_path_node: Node | null = s_mod.searching_next(node.walk());
+        assert(mod_path_node != null);
+
+        // Build Dependent module
+        let dep_mod = await this.parseAsModuleFromFile(
+            relativeModPath(mod, mod_path_node));
+        assert(dep_mod != null);
+        dep_mod.depBy(mod);
+        mod.dep(dep_mod);
+
+        /* Parsing external symbols */
+        let import_list_node: Node | null =
+            s_symbols.searching_next(node.walk());
+        assert(import_list_node != null);
+        let symbol_searcher: Searcher =
+            new Searcher(import_list_node, 'ident_pattern_token');
+        let symbol_nodes: Node[] =
+            symbol_searcher.searching_all(import_list_node.walk());
+
+        let symbols = symbol_nodes.map((n:Node) => n.text);
+        mod.setExternalSymbols(dep_mod.ident, symbols);
     }
 }
 

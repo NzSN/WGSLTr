@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { Tree } from 'web-tree-sitter';
-import { WGSLParser } from './parser';
+import { Searcher, WGSLParser } from './parser';
 import { Module } from '../module';
 
 describe("Parser Unittests", () => {
@@ -8,10 +8,15 @@ describe("Parser Unittests", () => {
     test("Parsing", async () => {
         let parser = new WGSLParser();
         const source = (n: number) => {
-            return `fn main() { var a: f32 = ${n}; }` };
+            return `fn main() { var a: vec2<f32> = 1 < ${n}; }` };
 
         await fc.assert(fc.asyncProperty(fc.nat(), async (n: number) => {
             let tree: Tree | null = await parser.parse(source(n));
+
+            let s: Searcher = new Searcher((tree as Tree).rootNode, "less_than");
+            let bb = s.searching_all((tree as Tree).rootNode.walk());
+            console.log(bb[0].text);
+
             return tree != null && tree?.rootNode.text == source(n);
         }));
 

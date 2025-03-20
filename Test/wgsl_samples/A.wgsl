@@ -19,6 +19,7 @@ struct VertexOutput {
 fn v_main(
   @location(0) position: vec2<f32>,
   @location(1) uv: vec2<f32>,
+  @location(2) vv: Uniforms,
 ) -> VertexOutput {
   var output : VertexOutput;
   output.Position = camera.mvpMatrix * uniforms.matrix * vec4(position, 0.0, 1.0);
