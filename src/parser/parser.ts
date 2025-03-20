@@ -89,7 +89,9 @@ export function isInterriorNode(node: Node) {
 ///////////////////////////////////////////////////////////////////////////////
 //                           Iteration Of ParseTree                          //
 ///////////////////////////////////////////////////////////////////////////////
-export function preorderIterate(cursor: TreeCursor, rootNode: Node): Node | null{
+export function preorderIterate(
+    cursor: TreeCursor, rootNode: Node): Node | null {
+
     if (!cursor.gotoFirstChild()) {
         if (!cursor.gotoNextSibling()) {
             if (cursor.currentNode.equals(rootNode)) {
