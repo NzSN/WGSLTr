@@ -53,7 +53,6 @@ export class TokenOperatorBase {
 
 export class ModuleQualifier extends TokenOperatorBase
                              implements TokenOperator<TokenOPEnv> {
-
     public readonly ident = "ModuleQualifier";
 
     private decorateWithModID(mod: Module, symbol: string): string {
@@ -72,9 +71,7 @@ export class ModuleQualifier extends TokenOperatorBase
         if (this.ignorable(t, extra)) {
             return t;
         }
-        if (this.ignorable(t, extra) &&
-            t.type == 'ident_pattern_token') {
-
+        if (t.type == 'ident_pattern_token') {
             assert(extra.module != null);
             if (extra.module.isExternalSymbol(t.literal)) {
                 t.literal = this.resolve(extra.module, t.literal);

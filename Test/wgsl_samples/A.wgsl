@@ -1,5 +1,7 @@
 import { Camera } from './B';
 
+override gain: f32;
+
 struct Uniforms {
   matrix : mat4x4<f32>,
   alpha: f32,

@@ -30,9 +30,21 @@ describe("Representation Unittests", () => {
 
         let mod: Module | null =
             await parser.parseAsModuleFromFile(
-                "./Test/wgsl_samples/abc.wgsl");
+                "./Test/wgsl_samples/A.wgsl");
         expect(mod != null).toBeTruthy();
+        let p: Presentation = new Presentation(mod as Module);
+        let present = p.present().reduce(
+            (acc,cur) => acc + " " + cur.literal, "");
+        console.log(present);
+    })
 
+    test("Circular Present", async () => {
+        let parser: WGSLParser = new WGSLParser();
+
+        let mod: Module | null =
+            await parser.parseAsModuleFromFile(
+                "./Test/wgsl_samples/circular/A.wgsl");
+        expect(mod != null).toBeTruthy();
         let p: Presentation = new Presentation(mod as Module);
         let present = p.present().reduce(
             (acc,cur) => acc + " " + cur.literal, "");

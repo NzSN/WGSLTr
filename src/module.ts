@@ -1,3 +1,4 @@
+import { Vertex, VertexState } from "./base/graph";
 import { Tree, Node } from "web-tree-sitter";
 
 let mod_counter = 0;
@@ -5,7 +6,6 @@ let mod_counter = 0;
 function uniqueID(): string {
     const id = mod_counter.toString();
     ++mod_counter;
-
     return id;
 }
 
@@ -13,7 +13,9 @@ function uniqueID(): string {
 type Symbol  = string;
 type ModID   = string;
 type ModPath = string;
-export class Module {
+export class Module implements Vertex {
+    public state: VertexState = VertexState.UNDISCOVERED;
+
     public static all: Map<ModPath, Module> = new Map();
     public static all_by_id: Map<ModID, Module> = new Map();
 
@@ -27,6 +29,10 @@ export class Module {
 
     private _maybe_external_symbol_list: Symbol[] | null = null;
     private _external_symbols: Map<ModID,Symbol[]> = new Map();
+
+    public get edges() {
+        return this._deps;
+    }
 
     constructor(path: ModPath, tree: Tree) {
         this._path = path;

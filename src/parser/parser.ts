@@ -31,13 +31,20 @@ export class WGSLParser {
 
     public async parseAsModule(path: string, source: string): Promise<Module | null> {
         let tree = await this.parse(source);
+
         assert(tree != null);
 
         let mod = new Module(path, tree);
         let s_import: Searcher = new Searcher(
             tree.rootNode, 'import');
+
         const imports: Node[] =
-            s_import.searching_all(tree.rootNode.walk())
+            s_import.searching_all(
+                tree.rootNode.walk(),
+                (n:Node) => {
+                    return n.type == 'import' ||
+                           n.parent?.type == 'translation_unit';
+                })
                 .filter((n: Node) => n.isNamed);
 
         for (const n of imports) {
@@ -54,8 +61,14 @@ export class WGSLParser {
         assert(mod_path_node != null);
 
         // Build Dependent module
-        let dep_mod = await this.parseAsModuleFromFile(
-            relativeModPath(mod, mod_path_node));
+        const module_path = relativeModPath(mod, mod_path_node);
+        let dep_mod: Module | null = null;
+        if (Module.all.has(module_path)) {
+            dep_mod = Module.all.get(module_path) as Module;
+        } else {
+            dep_mod = await this.parseAsModuleFromFile(
+                relativeModPath(mod, mod_path_node));
+        }
         assert(dep_mod != null);
         dep_mod.depBy(mod);
         mod.dep(dep_mod);
@@ -90,9 +103,15 @@ export function isInterriorNode(node: Node) {
 //                           Iteration Of ParseTree                          //
 ///////////////////////////////////////////////////////////////////////////////
 export function preorderIterate(
-    cursor: TreeCursor, rootNode: Node): Node | null {
+    cursor: TreeCursor,
+    rootNode: Node,
+    convergent_cond? : (n:Node) => boolean): Node | null {
 
-    if (!cursor.gotoFirstChild()) {
+    const convergent =
+        convergent_cond != null &&
+        convergent_cond(cursor.currentNode);
+
+    if (convergent || !cursor.gotoFirstChild()) {
         if (!cursor.gotoNextSibling()) {
             if (cursor.currentNode.equals(rootNode)) {
                 return null;
@@ -115,7 +134,8 @@ export function preorderIterate(
 
 export function iterateUntil(cursor: TreeCursor,
                              cond: (n: Node) => boolean,
-                             root: Node | null = null): Node | null {
+                             root: Node | null = null,
+                             convergent_cond? : (n:Node) => boolean): Node | null {
     let rootNode = cursor.currentNode;
     if (root != null) {
         rootNode = root;
@@ -126,21 +146,23 @@ export function iterateUntil(cursor: TreeCursor,
         if (cond(current)) {
             return current;
         }
-    } while(preorderIterate(cursor, rootNode) != null);
+    } while(preorderIterate(cursor, rootNode, convergent_cond) != null);
 
     return null;
 }
 
 export function gotoNextNodeWithTypes(
     cursor: TreeCursor, node_types: WGSLNodeType[],
-    rootNode: Node | null = null): Node | null {
+    rootNode: Node | null = null,
+    convergent_cond? : (n:Node) => boolean): Node | null {
 
-    preorderIterate(cursor, cursor.currentNode);
+    preorderIterate(cursor, cursor.currentNode, convergent_cond);
     return iterateUntil(
         cursor,
         (n: Node) => node_types.find(
             (nt: WGSLNodeType) => nt == n.type) != undefined,
-        rootNode);
+        rootNode,
+        convergent_cond);
 }
 
 export class Searcher {
@@ -163,7 +185,6 @@ export class Searcher {
             .concat(s.expected_node_type);
         return sum;
     }
-
     public *searching_yield(cursor: TreeCursor): Generator<Node | null> {
         let r = this.searching_next(cursor);
         if (r == null) {
@@ -172,16 +193,24 @@ export class Searcher {
             yield r;
         }
     }
-    public searching_next(cursor: TreeCursor): Node | null {
+    public searching_next(cursor: TreeCursor,
+                          convergent_cond? : (n:Node) => boolean): Node | null {
         return gotoNextNodeWithTypes(
-            cursor, this.expected_node_type, this.rootNode_);
+            cursor,
+            this.expected_node_type,
+            this.rootNode_,
+            convergent_cond);
     }
-    public searching_all(cursor: TreeCursor): Node[] {
+    public searching_all(cursor: TreeCursor,
+                         convergent_cond? : (n:Node) => boolean): Node[] {
         let results: Node[] = [];
 
         while (true) {
             let match_node = gotoNextNodeWithTypes(
-                cursor, this.expected_node_type, this.rootNode_);
+                cursor,
+                this.expected_node_type,
+                this.rootNode_,
+                convergent_cond);
             if (match_node == null) {
                 return results;
             } else {

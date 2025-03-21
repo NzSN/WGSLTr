@@ -77,7 +77,6 @@ export class Presentation {
     public readonly module: Module;
     private _tokenOps: TokenOperator<TokenOPEnv>[] = [
         new ModuleQualifier(),
-        new Obfuscator(),
     ];
     private _cwd: string = "";
     private _import_filter: ImportStmtFilter = new ImportStmtFilter();
@@ -135,7 +134,6 @@ export class Presentation {
                             });
                         }
                     }
-
                     this.tokenProc(tokens, token);
                 }
             }

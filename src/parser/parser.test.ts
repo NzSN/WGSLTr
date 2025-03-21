@@ -45,4 +45,16 @@ describe("Parser Unittests", () => {
         expect(module_A?.isDepOn(module_B as Module)).toBeTruthy();
         expect(module_B?.isDepBy(module_A as Module)).toBeTruthy();
     })
+
+    test("Circular import", async () => {
+        let parser = new WGSLParser();
+        const path_A = "./Test/wgsl_samples/circular/A.wgsl";
+        const path_B = "./Test/wgsl_samples/circular/B.wgsl";
+
+        const mod_A = await parser.parseAsModuleFromFile(path_A);
+        const mod_B = Module.all.get(path_B);
+
+        expect(mod_A != null).toBeTruthy();
+        expect(mod_B != null).toBeTruthy();
+    })
 })
