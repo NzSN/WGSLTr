@@ -34,6 +34,10 @@ export class Module implements Vertex {
         return this._deps;
     }
 
+    public get tree() {
+        return this._tree;
+    }
+
     constructor(path: ModPath, tree: Tree) {
         this._path = path;
         this._tree = tree;
@@ -46,6 +50,10 @@ export class Module implements Vertex {
     public setExternalSymbols(id: ModID, symbols: Symbol[]) {
         this._external_symbols.set(id, symbols);
         this._maybe_external_symbol_list = null;
+    }
+
+    public getExternalSymbols(id: ModID): Symbol[] | undefined {
+        return this._external_symbols.get(id);
     }
 
     public get allExternalSymbols() {
@@ -99,8 +107,7 @@ export class Module implements Vertex {
         let maybe_mod_id =
             Array.from(this._external_symbols.keys()).find((key) => {
                 return (this._external_symbols.get(key) as string[])
-                    .find((s) => s == sym) != undefined;
-            });
+                    .find((s) => s == sym) != undefined; });
         if (maybe_mod_id == undefined) {
             return null;
         } else {
