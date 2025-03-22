@@ -15,7 +15,6 @@ describe("Parser Unittests", () => {
 
             let s: Searcher = new Searcher((tree as Tree).rootNode, "less_than");
             let bb = s.searching_all((tree as Tree).rootNode.walk());
-            console.log(bb[0].text);
 
             return tree != null && tree?.rootNode.text == source(n);
         }));

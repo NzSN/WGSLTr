@@ -55,7 +55,7 @@ export class WGSLParser {
 
     private async parseExternalSymbols(mod: Module, node: Node) {
         let s_mod: Searcher = new Searcher(node, 'module_path');
-        let s_symbols: Searcher = new Searcher(node, 'import_list');
+        let s_symbols: Searcher = new Searcher(node, 'import_list', 'import_all');
 
         let mod_path_node: Node | null = s_mod.searching_next(node.walk());
         assert(mod_path_node != null);
@@ -74,16 +74,25 @@ export class WGSLParser {
         mod.dep(dep_mod);
 
         /* Parsing external symbols */
-        let import_list_node: Node | null =
+        let import_symbols_node: Node | null =
             s_symbols.searching_next(node.walk());
-        assert(import_list_node != null);
-        let symbol_searcher: Searcher =
-            new Searcher(import_list_node, 'ident_pattern_token');
-        let symbol_nodes: Node[] =
-            symbol_searcher.searching_all(import_list_node.walk());
+        assert(import_symbols_node != null);
+        if (import_symbols_node.text == '*') {
 
-        let symbols = symbol_nodes.map((n:Node) => n.text);
-        mod.setExternalSymbols(dep_mod.ident, symbols);
+        } else {
+            let symbol_searcher: Searcher =
+                new Searcher(import_symbols_node, 'ident_pattern_token');
+            let symbol_nodes: Node[] =
+                symbol_searcher.searching_all(import_symbols_node.walk());
+
+            let symbols = symbol_nodes.map((n:Node) => n.text);
+            mod.setExternalSymbols(dep_mod.ident, symbols);
+
+        }
+    }
+
+    private importAllSymbols(mod: Module, node: Node) {
+
     }
 }
 
