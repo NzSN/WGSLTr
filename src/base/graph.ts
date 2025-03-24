@@ -1,25 +1,30 @@
 export enum VertexState {
     UNDISCOVERED,
     DISCOVERED,
+    CLOSED,
 }
 export interface Vertex {
     edges: Vertex[];
     state: VertexState;
 }
 
-function dfs(v_entry: Vertex, cond: (v:Vertex) => boolean): Vertex {
-    v_entry.state = VertexState.DISCOVERED;
 
-    for (let vertex of v_entry.edges) {
-        if (vertex.state == VertexState.DISCOVERED) {
-            continue;
+export function dfs(v_entry: Vertex,
+                    convergent_cond: (v:Vertex) => boolean): Vertex | null {
+    let stack: Vertex[] = [v_entry];
+    while (stack.length > 0) {
+        let v = stack.pop()!;
+        if (convergent_cond(v)) {
+            return v;
         }
-        vertex.state = VertexState.DISCOVERED;
-        if (cond(vertex)) {
-            return vertex;
+        if (v.state == VertexState.UNDISCOVERED) {
+            v.state = VertexState.DISCOVERED;
         }
-        return dfs(vertex, cond);
+        for (let u of v.edges) {
+            if (u.state != VertexState.CLOSED) {
+                stack.push(u);
+            }
+        }
     }
-
-    return v_entry
+    return null;
 }

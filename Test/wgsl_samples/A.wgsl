@@ -1,4 +1,5 @@
 import { Camera } from './B';
+import * from './B';
 
 override gain: f32;
 
