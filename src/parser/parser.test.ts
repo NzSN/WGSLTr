@@ -1,5 +1,6 @@
 import fc from 'fast-check';
-import { Tree } from 'web-tree-sitter';
+import { strict as assert } from 'assert';
+import { Tree, Node } from 'web-tree-sitter';
 import { Searcher, WGSLParser } from './parser';
 import { Module } from '../module';
 
