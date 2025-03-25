@@ -97,7 +97,7 @@ export class WGSLParser {
 
         /* Retrive all identifiers that defined in dep_mod */
         let s_ident: Searcher = new Searcher(
-            dep_mod.tree.rootNode, 'ident_pattern_token');
+            dep_mod.tree.rootNode, 'ident');
         let ident_nodes: Node[] =
             s_ident.searching_all(dep_mod.tree.rootNode.walk());
 
