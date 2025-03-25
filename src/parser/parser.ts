@@ -88,7 +88,6 @@ export class WGSLParser {
 
             let symbols = symbol_nodes.map((n:Node) => n.text);
             mod.setExternalSymbols(dep_mod.ident, symbols);
-
         }
     }
 
@@ -97,13 +96,16 @@ export class WGSLParser {
             mod.getExternalSymbols(dep_mod.ident) ?? [];
 
         /* Retrive all identifiers that defined in dep_mod */
+        // TODO: Searching for 'ident_pattern_token' let the program
+        //       fall into dead loop.
         let s_ident: Searcher = new Searcher(
-            dep_mod.tree.rootNode, 'ident_pattern_token');
+            dep_mod.tree.rootNode, 'ident');
         let ident_nodes: Node[] =
             s_ident.searching_all(dep_mod.tree.rootNode.walk());
 
         let idents = ident_nodes.map((n:Node) => n.text);
         mod.setExternalSymbols(dep_mod.ident, idents);
+        console.log(idents);
     }
 }
 
