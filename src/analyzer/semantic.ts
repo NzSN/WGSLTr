@@ -1,4 +1,3 @@
-import { strict as assert } from 'assert';
 import { Node } from "web-tree-sitter";
 import { Module } from "../module";
 import { Searcher } from "../parser/parser";
