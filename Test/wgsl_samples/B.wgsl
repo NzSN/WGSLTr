@@ -1,3 +1,5 @@
+override gain: f32;
+
 struct Camera {
   mvpMatrix: mat4x4<f32>,
   mvMatrix: mat4x4<f32>,

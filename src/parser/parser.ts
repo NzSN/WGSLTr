@@ -4,6 +4,8 @@ import { WASM_MODULE_PATHS } from '../constants';
 import { Parser, Language, Tree, TreeCursor, Node } from 'web-tree-sitter';
 import { Module } from '../module';
 import { relativeModPath } from './utility';
+import { semanticVerify } from './semantic';
+import { Analyzer } from '../analyzer/analyzer';
 
 type WGSLNodeType = string;
 
@@ -44,12 +46,15 @@ export class WGSLParser {
                 (n:Node) => {
                     return n.type == 'import' ||
                            n.parent?.type == 'translation_unit';
-                })
-                .filter((n: Node) => n.isNamed);
+                }).filter((n: Node) => n.isNamed);
 
         for (const n of imports) {
             await this.parseExternalSymbols(mod, n);
         }
+
+        // Analyzing the module
+        Analyzer.analyze(mod);
+
         return mod;
     }
 
@@ -79,7 +84,7 @@ export class WGSLParser {
             s_symbols.searching_next(node.walk());
         assert(import_symbols_node != null);
         if (import_symbols_node.text == '*') {
-            this.importNecessarySymbols(mod, dep_mod);
+            this.importAllSymbols(mod, dep_mod);
         } else {
             let symbol_searcher: Searcher =
                 new Searcher(import_symbols_node, 'ident_pattern_token');
@@ -91,7 +96,7 @@ export class WGSLParser {
         }
     }
 
-    private importNecessarySymbols(mod: Module, dep_mod: Module) {
+    private importAllSymbols(mod: Module, dep_mod: Module) {
         let current_dep_symbols =
             mod.getExternalSymbols(dep_mod.ident) ?? [];
 

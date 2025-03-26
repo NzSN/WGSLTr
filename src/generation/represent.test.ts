@@ -4,7 +4,6 @@ import { Presentation } from './represent';
 import { Module } from '../module';
 
 describe("Representation Unittests", () => {
-
     test("Present", async () => {
         let source = (n:number) => {
             return `fn main() {${n}};` };
@@ -25,7 +24,7 @@ describe("Representation Unittests", () => {
         }));
     })
 
-    test("Recursive Present", async () => {
+    test("Recursively Present", async () => {
         let parser: WGSLParser = new WGSLParser();
 
         let mod: Module | null =
@@ -35,7 +34,6 @@ describe("Representation Unittests", () => {
         let p: Presentation = new Presentation(mod as Module);
         let present = p.present().reduce(
             (acc,cur) => acc + " " + cur.literal, "");
-        console.log(present);
     })
 
     test("Circular Present", async () => {
@@ -48,6 +46,5 @@ describe("Representation Unittests", () => {
         let p: Presentation = new Presentation(mod as Module);
         let present = p.present().reduce(
             (acc,cur) => acc + " " + cur.literal, "");
-        console.log(present);
     })
 })
