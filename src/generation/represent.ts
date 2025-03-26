@@ -4,6 +4,7 @@ import { Module } from "../module";
 import { Searcher, isLeave, preorderIterate } from "../parser/parser";
 import { importModPathStr } from '../parser/utility';
 import { Token, TokenOPEnv, TokenOperator, ModuleQualifier, Obfuscator } from './token_processors';
+import { Semantic } from '../analyzer/semantic';
 
 enum FilterState {
     Ready,
@@ -108,6 +109,8 @@ export class Presentation {
         let cursor: TreeCursor = current.walk();
 
         while (current != null) {
+            Semantic.verify(this.module, current);
+
             if (current.type == 'import' &&
                 current.isNamed) {
 

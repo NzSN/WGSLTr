@@ -10,11 +10,14 @@ function uniqueID(): string {
 }
 
 
-type Symbol  = string;
+export type Symbol  = string;
 type ModID   = string;
 type ModPath = string;
 export class Module implements Vertex {
     public state: VertexState = VertexState.UNDISCOVERED;
+
+    public static overrides: Map<ModPath, Symbol[]> = new Map();
+    public static override_list: Symbol[] = [];
 
     public static all: Map<ModPath, Module> = new Map();
     public static all_by_id: Map<ModID, Module> = new Map();
@@ -29,6 +32,35 @@ export class Module implements Vertex {
 
     private _maybe_external_symbol_list: Symbol[] | null = null;
     private _external_symbols: Map<ModID,Symbol[]> = new Map();
+
+    // Global Symbols
+    private _func_symbols: Symbol[] = [];
+    private _var_symbols: Symbol[] = [];
+    private _type_symbols: Symbol[] = [];
+
+    public get func_syms(): Symbol[] {
+        return this._func_symbols;
+    }
+
+    public addFuncSym(s: Symbol) {
+        this._func_symbols.push(s);
+    }
+
+    public get var_syms(): Symbol[] {
+        return this._var_symbols;
+    }
+
+    public addVarSym(s: Symbol) {
+        this._var_symbols.push(s);
+    }
+
+    public get type_syms(): Symbol[] {
+        return this._type_symbols;
+    }
+
+    public addTypeSym(s: Symbol) {
+        this._type_symbols.push(s);
+    }
 
     public get edges() {
         return this._deps;
