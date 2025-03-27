@@ -18,7 +18,7 @@ struct VertexOutput {
 @vertex
 fn v_main(
   @location(0) position: vec2<f32>,
-  @location(1) uv: vec2<f32>,
+  @location(1) uv: vec2f<f32>,
   @location(2) vv: Uniforms,
 ) -> VertexOutput {
   var output : VertexOutput  = gain;

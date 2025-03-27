@@ -2,9 +2,15 @@ import { Module, Symbol } from "../module";
 import { Searcher } from "../parser/parser";
 import { Node } from "web-tree-sitter";
 import { strict as assert } from 'assert';
+import { VertexState, dfs } from "../base/graph";
 
 export class Analyzer {
 
+    /* Unimported Override may break module semantic of Extended WGSL.
+     * For the purposes of gurantee of Module semantic all declarations
+     * of override variables and all primary expressions that reference
+     * to thoses declared overrides need to be tracked so that able to
+     * recognized unresolved references to override and report as exception. */
     public static analyzeOverrides(mod: Module) {
         let override_searcher: Searcher = new Searcher(
             mod.rootNode, 'global_constant_decl');
@@ -46,11 +52,25 @@ export class Analyzer {
         Module.override_list = Module.override_list.concat(override_idents);
     }
 
-    public static analyze(mod: Module) {
-        Analyzer.analyzeOverrides(mod);
+
+    /* Figure out all Modules that contain an import statement that
+     * import an Modules that is an ancestor of the Module. */
+    public static circularDepDetect(mod: Module) {
+        dfs(mod, (m) => {
+            const is_circular_point = m.edges.find((v) => {
+                return v.state == VertexState.DISCOVERED
+            }) != undefined;
+
+            if (is_circular_point) {
+                mod.addCircularPoint(m as Module);
+            }
+
+            return is_circular_point;
+        });
     }
 
-    public static verify(mod: Module) {
-
+    public static analyze(mod: Module) {
+        Analyzer.analyzeOverrides(mod);
+        Analyzer.circularDepDetect(mod);
     }
 }

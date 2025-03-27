@@ -1,13 +1,13 @@
 import fc from 'fast-check';
 import { WGSLParser } from '../parser/parser';
-import { Presentation } from './represent';
+import { CircularExcept, Presentation } from './represent';
 import { Module } from '../module';
+import { ModuleQualifier, Obfuscator } from './token_processors';
 
 describe("Representation Unittests", () => {
-    test("Present", async () => {
+    test("Basic Present", async () => {
         let source = (n:number) => {
-            return `fn main() {${n}};` };
-
+            return `fn abs() { abs(${n}); };` };
         let parser: WGSLParser = new WGSLParser();
 
         await fc.assert(fc.asyncProperty(fc.nat(), async (n:number) => {
@@ -16,7 +16,7 @@ describe("Representation Unittests", () => {
             if (mod == null) return false;
             let p: Presentation = new Presentation(mod);
 
-            let present = p.present().reduce(
+            let present = p.present(new ModuleQualifier()).reduce(
                 (acc,cur) => { return acc + cur.literal; },
                 "");
 
@@ -28,7 +28,7 @@ describe("Representation Unittests", () => {
         let parser: WGSLParser = new WGSLParser();
 
         let mod: Module | null =
-            await parser.parseAsModuleFromFile(
+            await parser.parseAsModule(
                 "./Test/wgsl_samples/A.wgsl");
         expect(mod != null).toBeTruthy();
         let p: Presentation = new Presentation(mod as Module);
@@ -40,11 +40,16 @@ describe("Representation Unittests", () => {
         let parser: WGSLParser = new WGSLParser();
 
         let mod: Module | null =
-            await parser.parseAsModuleFromFile(
+            await parser.parseAsModule(
                 "./Test/wgsl_samples/circular/A.wgsl");
         expect(mod != null).toBeTruthy();
-        let p: Presentation = new Presentation(mod as Module);
-        let present = p.present().reduce(
-            (acc,cur) => acc + " " + cur.literal, "");
+        try {
+            let p: Presentation = new Presentation(mod as Module);
+        } catch (e) {
+            if (e instanceof CircularExcept) {
+                return;
+            }
+        }
+        fail();
     })
 })

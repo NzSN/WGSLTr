@@ -22,6 +22,8 @@ export class Token {
 export interface TokenOperator<T> {
     ident: string;
     eval(t: Token, extra: T): Token;
+
+    comp(op: TokenOperator<T>): TokenOperator<T>;
 }
 
 
@@ -51,7 +53,29 @@ export class TokenOperatorBase {
     }
 }
 
-export class ModuleQualifier extends TokenOperatorBase
+export class ComposableTokenOperator<T> extends TokenOperatorBase
+                                        implements TokenOperator<T> {
+    public ident: string = "composedTokenOperator";
+    private operators: TokenOperator<T>[] = [];
+
+    public eval(t: Token, extra: T): Token {
+        let r = t;
+
+        this.operators.forEach((operator) => {
+            r = operator.eval(r, extra);
+        });
+
+        return r;
+    }
+
+    public comp(op: TokenOperator<T>): ComposableTokenOperator<T> {
+        let composed_operator = new ComposableTokenOperator<T>();
+        composed_operator.operators.push(op);
+        return composed_operator;
+    }
+}
+
+export class ModuleQualifier extends ComposableTokenOperator<TokenOPEnv>
                              implements TokenOperator<TokenOPEnv> {
     public readonly ident = "ModuleQualifier";
 
@@ -83,7 +107,7 @@ export class ModuleQualifier extends TokenOperatorBase
     }
 }
 
-export class Obfuscator extends TokenOperatorBase
+export class Obfuscator extends ComposableTokenOperator<TokenOPEnv>
                         implements TokenOperator<TokenOPEnv> {
 
     public readonly ident = "Obfuscator";
