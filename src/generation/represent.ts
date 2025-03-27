@@ -76,9 +76,7 @@ class ImportStmtFilter implements TokenFilter {
 
 export class Presentation {
     public readonly module: Module;
-    private _tokenOps: TokenOperator<TokenOPEnv>[] = [
-        new ModuleQualifier(),
-    ];
+    private _tokenOps: TokenOperator<TokenOPEnv>[] = [];
     private _cwd: string = "";
     private _import_filter: ImportStmtFilter = new ImportStmtFilter();
     private _op_env: TokenOPEnv;
@@ -109,7 +107,7 @@ export class Presentation {
         let cursor: TreeCursor = current.walk();
 
         while (current != null) {
-            Semantic.verify(this.module, current);
+            //Semantic.verify(this.module, current);
 
             if (current.type == 'import' &&
                 current.isNamed) {

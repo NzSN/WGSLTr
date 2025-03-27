@@ -24,13 +24,13 @@ export class WGSLParser {
         return this.parser_.parse(source);
     }
 
-    public async parseAsModuleFromFile(path: string): Promise<Module | null> {
+    public async parseAsModuleFromFileInternal(path: string): Promise<Module | null> {
         let source_content = readFileSync(
             path, {encoding: 'utf8', flag: 'r'});
-        return this.parseAsModule(path, source_content);
+        return this.parseAsModuleInternal(path, source_content);
     }
 
-    public async parseAsModule(
+    public async parseAsModuleInternal(
         path: string, source: string): Promise<Module | null> {
 
         let tree = await this.parse(source);
@@ -53,10 +53,24 @@ export class WGSLParser {
             await this.parseExternalSymbols(mod, n);
         }
 
-        // Analyzing the module
-        Analyzer.analyze(mod);
-
         return mod;
+    }
+
+    public async parseAsModule(path: string, source?: string): Promise<Module | null> {
+
+        let m: Module | null = null;
+
+        if (source == undefined) {
+            m = await this.parseAsModuleFromFileInternal(path);
+        } else {
+            m = await this.parseAsModuleInternal(path, source);
+        }
+
+        if (m != null) {
+            Analyzer.analyze(m);
+        }
+
+        return m;
     }
 
     private async parseExternalSymbols(mod: Module, node: Node) {
@@ -73,7 +87,7 @@ export class WGSLParser {
         if (Module.all.has(module_path)) {
             dep_mod = Module.all.get(module_path) as Module;
         } else {
-            dep_mod = await this.parseAsModuleFromFile(
+            dep_mod = await this.parseAsModuleFromFileInternal(
                 relativeModPath(mod, mod_path_node));
         }
         assert(dep_mod != null);

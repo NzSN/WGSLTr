@@ -86,8 +86,8 @@ describe("Graph Unittests", () => {
             return false;
         });
 
-        expect(vertex != null).toBeTruthy();
-        expect(vertex == Vs[Vs.length - 1]).toBeTruthy();
+        expect(vertex.length == 1).toBeTruthy();
+        expect(vertex[0] == Vs[Vs.length - 1]).toBeTruthy();
         expect(detected).toBeTruthy();
     })
 
@@ -100,18 +100,15 @@ describe("Graph Unittests", () => {
         Vs[0].setEdge(Vs[2]);
         Vs[1].setEdge(Vs[2]);
 
-        let detected = true;
-        detected = dfs(Vs[0], (v) => {
+        let vertexs = dfs(Vs[0], (v) => {
             const circular_node =
                 v.edges.find((v) => v.state == VertexState.DISCOVERED)
             if (circular_node != undefined) {
-                detected = true;
                 return true;
             }
             return false;
-        }) != undefined;
+        });
 
-
-        expect(!detected).toBeTruthy();
+        expect(vertexs.length == 0).toBeTruthy();
     });
 })

@@ -2,6 +2,7 @@ import { Module, Symbol } from "../module";
 import { Searcher } from "../parser/parser";
 import { Node } from "web-tree-sitter";
 import { strict as assert } from 'assert';
+import { VertexState, dfs } from "../base/graph";
 
 export class Analyzer {
 
@@ -56,7 +57,19 @@ export class Analyzer {
      * import an Modules that is an ancestor of the Module. */
     public static circularPoint: Module[] = [];
     public static circularDepDetect(mod: Module) {
+        Analyzer.circularPoint = [];
 
+        dfs(mod, (m) => {
+            const is_circular_point = m.edges.find((v) => {
+                return v.state == VertexState.DISCOVERED
+            }) != undefined;
+
+            if (is_circular_point) {
+                Analyzer.circularPoint.push(m as Module);
+            }
+
+            return is_circular_point;
+        });
     }
 
     public static analyze(mod: Module) {

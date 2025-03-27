@@ -3,6 +3,7 @@ import { strict as assert } from 'assert';
 import { Tree, Node } from 'web-tree-sitter';
 import { Searcher, WGSLParser } from './parser';
 import { Module } from '../module';
+import { Analyzer } from '../analyzer/analyzer';
 
 describe("Parser Unittests", () => {
 
@@ -34,7 +35,7 @@ describe("Parser Unittests", () => {
         let parser = new WGSLParser();
         const path = "./Test/wgsl_samples/A.wgsl";
         const path_of_B = "./Test/wgsl_samples/B.wgsl";
-        let M = await parser.parseAsModuleFromFile(path);
+        let M = await parser.parseAsModule(path);
 
         expect(Module.all.size == 2).toBeTruthy();
 
@@ -51,10 +52,32 @@ describe("Parser Unittests", () => {
         const path_A = "./Test/wgsl_samples/circular/A.wgsl";
         const path_B = "./Test/wgsl_samples/circular/B.wgsl";
 
-        const mod_A = await parser.parseAsModuleFromFile(path_A);
+        const mod_A = await parser.parseAsModule(path_A);
         const mod_B = Module.all.get(path_B);
 
         expect(mod_A != null).toBeTruthy();
         expect(mod_B != null).toBeTruthy();
+
+        expect(Analyzer.circularPoint.length == 1).toBeTruthy();
+        expect(Analyzer.circularPoint[0].path == path_B).toBeTruthy();
+    })
+
+    test("Dual Circular import", async () => {
+        let parser = new WGSLParser();
+        const path_A = "./Test/wgsl_samples/circular/Case1/A.wgsl";
+        const path_B = "./Test/wgsl_samples/circular/Case1/B.wgsl";
+        const path_C = "./Test/wgsl_samples/circular/Case1/C.wgsl";
+
+        const mod_A = await parser.parseAsModule(path_A);
+        const mod_B = Module.all.get(path_B);
+        const mod_C = Module.all.get(path_C);
+
+        expect(mod_A != null).toBeTruthy();
+        expect(mod_B != null).toBeTruthy();
+        expect(mod_C != null).toBeTruthy();
+
+        expect(Analyzer.circularPoint.length == 2).toBeTruthy();
+        expect(Analyzer.circularPoint[0].path == path_B).toBeTruthy();
+        expect(Analyzer.circularPoint[1].path == path_C).toBeTruthy();
     })
 })

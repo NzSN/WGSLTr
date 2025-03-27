@@ -19,7 +19,7 @@ describe("Representation Unittests", () => {
             let present = p.present().reduce(
                 (acc,cur) => { return acc + cur.literal; },
                 "");
-
+            console.log(present);
             return present == source(n).replace(/\s/g, '');
         }));
     })
@@ -28,7 +28,7 @@ describe("Representation Unittests", () => {
         let parser: WGSLParser = new WGSLParser();
 
         let mod: Module | null =
-            await parser.parseAsModuleFromFile(
+            await parser.parseAsModule(
                 "./Test/wgsl_samples/A.wgsl");
         expect(mod != null).toBeTruthy();
         let p: Presentation = new Presentation(mod as Module);
@@ -40,7 +40,7 @@ describe("Representation Unittests", () => {
         let parser: WGSLParser = new WGSLParser();
 
         let mod: Module | null =
-            await parser.parseAsModuleFromFile(
+            await parser.parseAsModule(
                 "./Test/wgsl_samples/circular/A.wgsl");
         expect(mod != null).toBeTruthy();
         let p: Presentation = new Presentation(mod as Module);
