@@ -116,7 +116,7 @@ export class Presentation {
 
                 let s: Searcher = new Searcher(current, 'module_path');
                 let module_path_node = s.searching_next(current.walk());
-                assert(module_path_node != null)
+                assert(module_path_node != null);
 
                 let module_path = importModPathStr(this._cwd, module_path_node.text);
                 assert(Module.all.has(module_path));

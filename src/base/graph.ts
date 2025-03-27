@@ -11,20 +11,20 @@ export interface Vertex {
 
 export function dfs(v_entry: Vertex,
                     convergent_cond: (v:Vertex) => boolean): Vertex | null {
-    let stack: Vertex[] = [v_entry];
-    while (stack.length > 0) {
-        let v = stack.pop()!;
-        if (convergent_cond(v)) {
-            return v;
-        }
-        if (v.state == VertexState.UNDISCOVERED) {
-            v.state = VertexState.DISCOVERED;
-        }
-        for (let u of v.edges) {
-            if (u.state != VertexState.CLOSED) {
-                stack.push(u);
+    /* Iterate all vertexs and close
+     * vertex once exits from the node */
+    v_entry.state = VertexState.DISCOVERED;
+    if (convergent_cond(v_entry)) {
+        return v_entry;
+    }
+    for (let u of v_entry.edges) {
+        if (u.state == VertexState.UNDISCOVERED) {
+            let res = dfs(u, convergent_cond);
+            if (res != null) {
+                return res;
             }
         }
     }
+    v_entry.state = VertexState.CLOSED;
     return null;
 }

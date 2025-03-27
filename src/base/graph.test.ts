@@ -1,4 +1,4 @@
-import { dfs, Vertex, VertexState } from './graph';
+import { dfs, dfsCircularDetect, Vertex, VertexState } from './graph';
 
 class TrivialVertex implements Vertex {
     public edges: TrivialVertex[] = [];
@@ -59,7 +59,7 @@ describe("Graph Unittests", () => {
         Vs.forEach((v) => expect(v.counter == 1).toBeTruthy());
     })
 
-    test("DFS Circular Detect", () => {
+    test("Circular Detect Case 1", () => {
       let Vs = [new TrivialVertex(),
                 new TrivialVertex(),
                 new TrivialVertex(),
@@ -90,4 +90,28 @@ describe("Graph Unittests", () => {
         expect(vertex == Vs[Vs.length - 1]).toBeTruthy();
         expect(detected).toBeTruthy();
     })
+
+    test("Circular Detect Case 2", () => {
+        let Vs = [new TrivialVertex(),
+                  new TrivialVertex(),
+                  new TrivialVertex()];
+
+        Vs[0].setEdge(Vs[1]);
+        Vs[0].setEdge(Vs[2]);
+        Vs[1].setEdge(Vs[2]);
+
+        let detected = true;
+        detected = dfs(Vs[0], (v) => {
+            const circular_node =
+                v.edges.find((v) => v.state == VertexState.DISCOVERED)
+            if (circular_node != undefined) {
+                detected = true;
+                return true;
+            }
+            return false;
+        }) != undefined;
+
+
+        expect(!detected).toBeTruthy();
+    });
 })
