@@ -4,7 +4,6 @@ import { WASM_MODULE_PATHS } from '../constants';
 import { Parser, Language, Tree, TreeCursor, Node } from 'web-tree-sitter';
 import { Module } from '../module';
 import { relativeModPath } from './utility';
-import { semanticVerify } from './semantic';
 import { Analyzer } from '../analyzer/analyzer';
 
 type WGSLNodeType = string;
@@ -31,7 +30,9 @@ export class WGSLParser {
         return this.parseAsModule(path, source_content);
     }
 
-    public async parseAsModule(path: string, source: string): Promise<Module | null> {
+    public async parseAsModule(
+        path: string, source: string): Promise<Module | null> {
+
         let tree = await this.parse(source);
 
         assert(tree != null);
