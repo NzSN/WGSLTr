@@ -83,6 +83,11 @@ export class Presentation {
 
     constructor(m: Module) {
         this.module = m;
+
+        if (this.module.circular_point.length > 0) {
+            throw new Error("Circular dependence is not allowed");
+        }
+
         this._cwd = this.module.path;
         this._op_env = new TokenOPEnv();
         this._op_env.module = this.module;
@@ -107,7 +112,7 @@ export class Presentation {
         let cursor: TreeCursor = current.walk();
 
         while (current != null) {
-            //Semantic.verify(this.module, current);
+            Semantic.verify(this.module, current);
 
             if (current.type == 'import' &&
                 current.isNamed) {

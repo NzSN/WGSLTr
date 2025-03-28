@@ -55,17 +55,14 @@ export class Analyzer {
 
     /* Figure out all Modules that contain an import statement that
      * import an Modules that is an ancestor of the Module. */
-    public static circularPoint: Module[] = [];
     public static circularDepDetect(mod: Module) {
-        Analyzer.circularPoint = [];
-
         dfs(mod, (m) => {
             const is_circular_point = m.edges.find((v) => {
                 return v.state == VertexState.DISCOVERED
             }) != undefined;
 
             if (is_circular_point) {
-                Analyzer.circularPoint.push(m as Module);
+                mod.addCircularPoint(m as Module);
             }
 
             return is_circular_point;

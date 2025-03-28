@@ -58,8 +58,8 @@ describe("Parser Unittests", () => {
         expect(mod_A != null).toBeTruthy();
         expect(mod_B != null).toBeTruthy();
 
-        expect(Analyzer.circularPoint.length == 1).toBeTruthy();
-        expect(Analyzer.circularPoint[0].path == path_B).toBeTruthy();
+        expect(mod_A?.circular_point.length == 1).toBeTruthy();
+        expect(mod_A?.circular_point[0].path == path_B).toBeTruthy();
     })
 
     test("Dual Circular import", async () => {
@@ -76,8 +76,8 @@ describe("Parser Unittests", () => {
         expect(mod_B != null).toBeTruthy();
         expect(mod_C != null).toBeTruthy();
 
-        expect(Analyzer.circularPoint.length == 2).toBeTruthy();
-        expect(Analyzer.circularPoint[0].path == path_B).toBeTruthy();
-        expect(Analyzer.circularPoint[1].path == path_C).toBeTruthy();
+        expect(mod_A?.circular_point.length == 2).toBeTruthy();
+        expect(mod_A?.circular_point[0].path == path_B).toBeTruthy();
+        expect(mod_A?.circular_point[1].path == path_C).toBeTruthy();
     })
 })
