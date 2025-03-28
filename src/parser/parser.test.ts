@@ -7,7 +7,7 @@ import { Analyzer } from '../analyzer/analyzer';
 
 describe("Parser Unittests", () => {
 
-    test("Parsing", async () => {
+    test("Basic Parsing", async () => {
         let parser = new WGSLParser();
         const source = (n: number) => {
             return `fn main() { var a: vec2<f32> = 1 < ${n}; }` };

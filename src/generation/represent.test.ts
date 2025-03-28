@@ -5,10 +5,9 @@ import { Module } from '../module';
 import { ModuleQualifier, Obfuscator } from './token_processors';
 
 describe("Representation Unittests", () => {
-    test("Present", async () => {
+    test("Basic Present", async () => {
         let source = (n:number) => {
-            return `fn main() {${n}};` };
-
+            return `fn abs() { abs(${n}); };` };
         let parser: WGSLParser = new WGSLParser();
 
         await fc.assert(fc.asyncProperty(fc.nat(), async (n:number) => {
@@ -17,9 +16,10 @@ describe("Representation Unittests", () => {
             if (mod == null) return false;
             let p: Presentation = new Presentation(mod);
 
-            let present = p.present().reduce(
+            let present = p.present(new ModuleQualifier()).reduce(
                 (acc,cur) => { return acc + cur.literal; },
                 "");
+
             return present == source(n).replace(/\s/g, '');
         }));
     })
