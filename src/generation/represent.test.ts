@@ -50,7 +50,6 @@ describe("Representation Unittests", () => {
                 return;
             }
         }
-
         fail();
     })
 })
