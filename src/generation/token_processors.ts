@@ -56,7 +56,7 @@ export class TokenOperatorBase {
 export class ComposableTokenOperator<T> extends TokenOperatorBase
                                         implements TokenOperator<T> {
     public ident: string = "composedTokenOperator";
-    private operators: ComposableTokenOperator<T>[] = [];
+    private operators: TokenOperator<T>[] = [];
 
     public eval(t: Token, extra: T): Token {
         let r = t;
@@ -68,12 +68,9 @@ export class ComposableTokenOperator<T> extends TokenOperatorBase
         return r;
     }
 
-    public comp(op: ComposableTokenOperator<T>): ComposableTokenOperator<T> {
+    public comp(op: TokenOperator<T>): ComposableTokenOperator<T> {
         let composed_operator = new ComposableTokenOperator<T>();
-
-        composed_operator.operators =
-            composed_operator.operators.concat(op.operators);
-
+        composed_operator.operators.push(op);
         return composed_operator;
     }
 }
@@ -110,7 +107,7 @@ export class ModuleQualifier extends ComposableTokenOperator<TokenOPEnv>
     }
 }
 
-export class Obfuscator extends TokenOperatorBase
+export class Obfuscator extends ComposableTokenOperator<TokenOPEnv>
                         implements TokenOperator<TokenOPEnv> {
 
     public readonly ident = "Obfuscator";

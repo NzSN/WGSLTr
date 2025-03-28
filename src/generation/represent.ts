@@ -3,7 +3,7 @@ import { Node, TreeCursor } from 'web-tree-sitter';
 import { Module } from "../module";
 import { Searcher, isLeave, preorderIterate } from "../parser/parser";
 import { importModPathStr } from '../parser/utility';
-import { Token, TokenOPEnv, TokenOperator, ModuleQualifier, Obfuscator } from './token_processors';
+import { Token, TokenOPEnv, TokenOperator, ModuleQualifier, Obfuscator, TokenOperatorBase, ComposableTokenOperator } from './token_processors';
 import { Semantic } from '../analyzer/semantic';
 
 enum FilterState {
@@ -82,7 +82,6 @@ export class CircularExcept extends Error {
 
 export class Presentation {
     public readonly module: Module;
-    private _tokenOps: TokenOperator<TokenOPEnv>[] = [];
     private _cwd: string = "";
     private _import_filter: ImportStmtFilter = new ImportStmtFilter();
     private _op_env: TokenOPEnv;
@@ -99,18 +98,18 @@ export class Presentation {
         this._op_env.module = this.module;
     }
 
-    public addProcessor(t: TokenOperator<TokenOPEnv>) {
-        this._tokenOps.push(t);
-    }
+    // public addProcessor(t: TokenOperator<TokenOPEnv>) {
+    //     this._tokenOps.push(t);
+    // }
 
-    private tokenProc(tokens: Token[], token: Token) {
-        this._tokenOps.forEach((op: TokenOperator<TokenOPEnv>) => {
-            token = op.eval(token, this._op_env);
-        });
-        tokens.push(token);
-    }
+    // private tokenProc(tokens: Token[], token: Token) {
+    //     this._tokenOps.forEach((op: TokenOperator<TokenOPEnv>) => {
+    //         token = op.eval(token, this._op_env);
+    //     });
+    //     tokens.push(token);
+    // }
 
-    public present(): Token[] {
+    public present(op: ComposableTokenOperator<TokenOPEnv> | null = null): Token[] {
         let tokens: Token[] = [];
 
         const rootNode = this.module.rootNode;
@@ -131,7 +130,7 @@ export class Presentation {
                 assert(Module.all.has(module_path));
 
                 let dep_module = Module.all.get(module_path);
-                tokens = tokens.concat(new Presentation(dep_module as Module).present());
+                tokens = tokens.concat(new Presentation(dep_module as Module).present(op));
             } else {
                 if (isLeave(current)) {
                     let token: Token = new Token(current);
@@ -142,11 +141,19 @@ export class Presentation {
                     } else {
                         if (this._import_filter.state == FilterState.ROLLBACK) {
                             this._import_filter.pendingTokens.forEach((t: Token) => {
-                                this.tokenProc(tokens, t);
+                                if (op != null) {
+                                    tokens.push(op.eval(t, this._op_env));
+                                } else {
+                                    tokens.push(t);
+                                }
                             });
                         }
                     }
-                    this.tokenProc(tokens, token);
+                    if (op != null) {
+                        tokens.push(op.eval(token, this._op_env));
+                    } else {
+                        tokens.push(token);
+                    }
                 }
             }
             current = preorderIterate(cursor, rootNode);

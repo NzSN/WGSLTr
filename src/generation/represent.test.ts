@@ -2,6 +2,7 @@ import fc from 'fast-check';
 import { WGSLParser } from '../parser/parser';
 import { CircularExcept, Presentation } from './represent';
 import { Module } from '../module';
+import { ModuleQualifier, Obfuscator } from './token_processors';
 
 describe("Representation Unittests", () => {
     test("Present", async () => {
@@ -19,7 +20,6 @@ describe("Representation Unittests", () => {
             let present = p.present().reduce(
                 (acc,cur) => { return acc + cur.literal; },
                 "");
-            console.log(present);
             return present == source(n).replace(/\s/g, '');
         }));
     })
