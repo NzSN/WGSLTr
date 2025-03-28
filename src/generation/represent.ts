@@ -3,7 +3,7 @@ import { Node, TreeCursor } from 'web-tree-sitter';
 import { Module } from "../module";
 import { Searcher, isLeave, preorderIterate } from "../parser/parser";
 import { importModPathStr } from '../parser/utility';
-import { Token, TokenOPEnv, TokenOperator, ModuleQualifier, Obfuscator, TokenOperatorBase, ComposableTokenOperator } from './token_processors';
+import { Token, TokenOPEnv, ComposableTokenOperator } from './token_processors';
 import { Semantic } from '../analyzer/semantic';
 
 enum FilterState {
@@ -97,17 +97,6 @@ export class Presentation {
         this._op_env = new TokenOPEnv();
         this._op_env.module = this.module;
     }
-
-    // public addProcessor(t: TokenOperator<TokenOPEnv>) {
-    //     this._tokenOps.push(t);
-    // }
-
-    // private tokenProc(tokens: Token[], token: Token) {
-    //     this._tokenOps.forEach((op: TokenOperator<TokenOPEnv>) => {
-    //         token = op.eval(token, this._op_env);
-    //     });
-    //     tokens.push(token);
-    // }
 
     public present(op: ComposableTokenOperator<TokenOPEnv> | null = null): Token[] {
         let tokens: Token[] = [];
