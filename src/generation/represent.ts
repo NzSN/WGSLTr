@@ -74,6 +74,12 @@ class ImportStmtFilter implements TokenFilter {
     }
 }
 
+export class CircularExcept extends Error {
+    constructor() {
+        super("Circular dependences is not allowed");
+    }
+}
+
 export class Presentation {
     public readonly module: Module;
     private _tokenOps: TokenOperator<TokenOPEnv>[] = [];
@@ -85,7 +91,7 @@ export class Presentation {
         this.module = m;
 
         if (this.module.circular_point.length > 0) {
-            throw new Error("Circular dependence is not allowed");
+            throw new CircularExcept();
         }
 
         this._cwd = this.module.path;

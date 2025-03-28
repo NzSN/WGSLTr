@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { WGSLParser } from '../parser/parser';
-import { Presentation } from './represent';
+import { CircularExcept, Presentation } from './represent';
 import { Module } from '../module';
 
 describe("Representation Unittests", () => {
@@ -43,8 +43,14 @@ describe("Representation Unittests", () => {
             await parser.parseAsModule(
                 "./Test/wgsl_samples/circular/A.wgsl");
         expect(mod != null).toBeTruthy();
-        let p: Presentation = new Presentation(mod as Module);
-        let present = p.present().reduce(
-            (acc,cur) => acc + " " + cur.literal, "");
+        try {
+            let p: Presentation = new Presentation(mod as Module);
+        } catch (e) {
+            if (e instanceof CircularExcept) {
+                return;
+            }
+        }
+
+        fail();
     })
 })
