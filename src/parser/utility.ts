@@ -2,6 +2,7 @@ import { strict as assert } from 'assert';
 import * as PathUtil from 'path';
 import { Node } from 'web-tree-sitter';
 import { Module } from '../module';
+import { platform } from 'process';
 
 type Path = string;
 
@@ -30,6 +31,11 @@ export function importModPathStr(current_mod: string, import_mod_path: string) {
     let path = PathUtil.join(
         PathUtil.dirname(current_mod),
         import_path);
+
+    if (platform == 'win32') {
+        path = path.replace(/\\/g, "/");
+    }
+
     return "./" + wgslPathComplete(path)
 
 }
