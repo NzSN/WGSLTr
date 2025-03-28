@@ -19,7 +19,7 @@ export class Semantic {
             (s) => s == var_ident) != undefined;
         if (is_refer_to_override) {
             const overrides_def_in_current_mod =
-                Module.overrides.get(mod.path);
+                Module.overrides.get(mod.ident);
 
             const is_defined =
                 mod.allExternalSymbols.find(
