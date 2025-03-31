@@ -5,6 +5,7 @@ import { Searcher, isLeave, preorderIterate } from "../parser/parser";
 import { importModPathStr } from '../parser/utility';
 import { Token, TokenOPEnv, ComposableTokenOperator } from './token_processors';
 import { Semantic } from '../analyzer/semantic';
+import { mod_group } from '../module_group';
 
 enum FilterState {
     Ready,
@@ -116,9 +117,9 @@ export class Presentation {
                 assert(module_path_node != null);
 
                 let module_path = importModPathStr(this._cwd, module_path_node.text);
-                assert(Module.all.has(module_path));
+                assert(mod_group.pathExists(module_path));
 
-                let dep_module = Module.all.get(module_path);
+                let dep_module = mod_group.search_by_path(module_path);
                 tokens = tokens.concat(new Presentation(dep_module as Module).present(op));
             } else {
                 if (isLeave(current)) {

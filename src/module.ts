@@ -1,7 +1,9 @@
+import { strict as assert } from 'assert';
 import { Vertex, VertexState } from "./base/graph";
 import { Tree, Node } from "web-tree-sitter";
 import crypto from 'crypto';
 import Path from 'path';
+import fs from 'fs';
 
 let mod_counter = 0;
 
@@ -12,17 +14,21 @@ function uniqueSN(): string {
 }
 
 export type Symbol  = string;
-type ModID   = string;
-type ModPath = string;
+export type ModID   = string;
+export type ModPath = string;
+
+export enum ModuleState {
+    NORMAL,
+    OUT_OF_DATE,
+}
 export class Module implements Vertex {
+    public _m_state: ModuleState;
     public state: VertexState = VertexState.UNDISCOVERED;
 
-    public static overrides: Map<ModPath, Symbol[]> = new Map();
-    public static override_list: Symbol[] = [];
+    public _mtimeMs: number = 0;
 
-    public static all: Map<ModPath, Module> = new Map();
-    public static all_by_id: Map<ModID, Module> = new Map();
-    public static all_by_sn: Map<string, Module> = new Map();
+    public static overrides: Map<ModID, Symbol[]> = new Map();
+    public static override_list: Symbol[] = [];
 
     private _circular_point: Module[] = [];
 
@@ -42,6 +48,27 @@ export class Module implements Vertex {
     private _func_symbols: Symbol[] = [];
     private _var_symbols: Symbol[] = [];
     private _type_symbols: Symbol[] = [];
+
+    public equal(mod: Module) {
+        return this._ident == mod._ident &&
+            this._mtimeMs == mod._mtimeMs;
+    }
+
+    public destruct() {
+        this._m_state = ModuleState.OUT_OF_DATE;
+
+        if (Module.overrides.has(this._ident)) {
+            const overrides = Module.overrides.get(this._ident) as Symbol[];
+            Module.override_list =
+                Module.override_list.filter((sym: Symbol) => {
+                    return overrides.find(
+                        (sym_in_this_module: Symbol) => {
+                            return sym_in_this_module == sym;
+                        }) == undefined;
+                });
+            Module.overrides.delete(this._ident);
+        }
+    }
 
     public get circular_point() {
         return this._circular_point;
@@ -84,18 +111,36 @@ export class Module implements Vertex {
     }
 
     constructor(path: ModPath, tree: Tree) {
-        this._path = path;
+        this._m_state = ModuleState.NORMAL;
+
+        this._path = Path.resolve(path);
+        assert(fs.existsSync(this._path));
+
         this._tree = tree;
         this._sn = uniqueSN();
 
-        Module.all.set(path, this);
-        const hash = crypto.createHash('sha256');
-        this._ident = Path.resolve(path);
-        hash.update(this._ident, 'utf8');
-        this._ident = hash.digest('base64');
+        this._ident = Module.getIdentByPath(this._path);
+    }
 
-        Module.all_by_id.set(this._ident, this);
-        Module.all_by_sn.set(this._sn, this);
+    public static async build(path: ModPath, tree: Tree) {
+        let m = new Module(path, tree);
+        m._mtimeMs = (await fs.promises.stat(path)).mtimeMs;
+        return m;
+    }
+
+    public static getIdentByPath(path: string): string {
+        path = Path.resolve(path);
+        const hash = crypto.createHash('sha256');
+        hash.update(path, 'utf8');
+        return hash.digest('base64');
+    }
+
+    public async isOutOfDate(): Promise<boolean> {
+        if (this._m_state == ModuleState.OUT_OF_DATE) {
+            return true;
+        }
+        const current_mtimeMs = (await fs.promises.stat(this._path)).mtimeMs;
+        return current_mtimeMs > this._mtimeMs;
     }
 
     public setExternalSymbols(id: ModID, symbols: Symbol[]) {
@@ -141,12 +186,35 @@ export class Module implements Vertex {
         return may_dep_by.isDepOn(this);
     }
 
+    public getAllDepBy() {
+        return this._depBys;
+    }
+
     public dep(m: Module) {
         this._deps.push(m);
     }
-
+    public getDep(ident: ModID) {
+        return this._deps.find((m: Module) => {
+            m.ident == ident;
+        });
+    }
+    public removeDep(ident: ModID) {
+        this._deps = this._deps.filter((m: Module) => {
+            return m.ident != ident;
+        });
+    }
     public depBy(m: Module) {
         this._depBys.push(m);
+    }
+    public getDepBy(ident: ModID) {
+        return this._depBys.find((m: Module) => {
+            return m.ident == ident;
+        });
+    }
+    public removeDepBy(ident: ModID) {
+        this._depBys = this._depBys.filter((m: Module) => {
+            return m.ident != ident;
+        });
     }
 
     public get path() {

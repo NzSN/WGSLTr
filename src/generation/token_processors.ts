@@ -3,6 +3,7 @@ import { Node } from "web-tree-sitter";
 import { Module } from "../module";
 import { ObfIdent } from './obfuscate';
 import { isBuiltinSymbol } from '../lang';
+import { mod_group } from '../module_group';
 
 export class Token {
     public type: string;
@@ -86,7 +87,7 @@ export class ModuleQualifier extends ComposableTokenOperator<TokenOPEnv>
     private resolve(mod: Module, ext_symbol: string): string {
         const dep_mod_id = mod.symbolFrom(ext_symbol);
         assert(dep_mod_id != null);
-        const dep_mod = Module.all_by_sn.get(dep_mod_id);
+        const dep_mod = mod_group.search_by_id(dep_mod_id);
         assert(dep_mod != undefined);
         return this.decorateWithModID(dep_mod, ext_symbol);
     }

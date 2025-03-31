@@ -36,7 +36,7 @@ export function importModPathStr(current_mod: string, import_mod_path: string) {
         path = path.replace(/\\/g, "/");
     }
 
-    return "./" + wgslPathComplete(path)
+    return wgslPathComplete(path)
 
 }
 

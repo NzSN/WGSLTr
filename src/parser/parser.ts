@@ -5,12 +5,19 @@ import { Parser, Language, Tree, TreeCursor, Node } from 'web-tree-sitter';
 import { Module } from '../module';
 import { relativeModPath } from './utility';
 import { Analyzer } from '../analyzer/analyzer';
+import { mod_group } from '../module_group';
+import Path from 'path';
+import { Subject } from '../base/observer';
 
 type WGSLNodeType = string;
 
-export class WGSLParser {
+export class WGSLParser extends Subject<Module>  {
     private parser_: Parser | null = null;
     private typescript_lang: Language | null = null;
+
+    constructor() {
+        super();
+    }
 
     public async parse(source: string): Promise<Tree | null> {
         if (this.parser_ == null) {
@@ -24,20 +31,51 @@ export class WGSLParser {
         return this.parser_.parse(source);
     }
 
-    public async parseAsModuleFromFileInternal(path: string): Promise<Module | null> {
+    private async parseAsModuleFromFileInternal(path: string): Promise<Module | null> {
+        let outdated_mod: Module | null = null;
+        let need_rebuild_graph = false;
+
+        const abs_path = Path.resolve(path);
+        const mod_id = Module.getIdentByPath(abs_path);
+        if (mod_group.identExists(mod_id)) {
+            const mod = mod_group.search_by_id(mod_id) as Module;
+            if (!(await mod.isOutOfDate())) {
+                return mod;
+            } else {
+                // Module is out of date
+                outdated_mod =
+                    mod_group.search_by_id(mod_id) as Module;
+                assert(outdated_mod != null);
+                mod_group.destruct_by_id(mod_id);
+                need_rebuild_graph = true;
+            }
+        }
+        // Module not exists or out of date
         let source_content = readFileSync(
             path, {encoding: 'utf8', flag: 'r'});
-        return this.parseAsModuleInternal(path, source_content);
+        const mod = await this.parseAsModuleInternal(abs_path, source_content);
+
+        if (need_rebuild_graph) {
+            assert(outdated_mod != null);
+            assert(mod != null);
+
+            outdated_mod.getAllDepBy().forEach((m: Module) => {
+                this.linkModule(m, mod);
+            });
+        }
+        return mod;
     }
 
-    public async parseAsModuleInternal(
+    private async parseAsModuleInternal(
         path: string, source: string): Promise<Module | null> {
 
         let tree = await this.parse(source);
 
         assert(tree != null);
 
-        let mod = new Module(path, tree);
+        let mod = await Module.build(path, tree);
+        this.notifyAllObservers(mod);
+
         let s_import: Searcher = new Searcher(
             tree.rootNode, 'import');
 
@@ -66,12 +104,37 @@ export class WGSLParser {
             m = await this.parseAsModuleInternal(path, source);
         }
 
-
         if (m != null) {
             Analyzer.analyze(m);
         }
 
         return m;
+    }
+
+    // Build Relation such that l_mod is depend on r_mod
+    private linkModule(l_mod: Module, r_mod: Module) {
+        if (l_mod.isDepOn(r_mod)) {
+            const dep_mod = l_mod.getDep(r_mod.ident);
+            if (dep_mod?.equal(r_mod)) {
+                return true;
+            } else {
+                l_mod.removeDep(r_mod.ident);
+                l_mod.dep(r_mod);
+            }
+        }
+        if (r_mod.isDepBy(l_mod)) {
+            const dep_by_mod = r_mod.getDepBy(l_mod.ident);
+            if (dep_by_mod?.equal(l_mod)) {
+                return true;
+            } else {
+                r_mod.removeDepBy(l_mod.ident);
+                r_mod.depBy(l_mod);
+            }
+        }
+        if (!l_mod.isDepOn(r_mod) && !r_mod.isDepBy(l_mod)) {
+            l_mod.dep(r_mod);
+            r_mod.depBy(l_mod);
+        }
     }
 
     private async parseExternalSymbols(mod: Module, node: Node) {
@@ -85,15 +148,14 @@ export class WGSLParser {
         // Build Dependent module
         const module_path = relativeModPath(mod, mod_path_node);
         let dep_mod: Module | null = null;
-        if (Module.all.has(module_path)) {
-            dep_mod = Module.all.get(module_path) as Module;
+        if (mod_group.pathExists(module_path)) {
+            dep_mod = mod_group.search_by_path(module_path) as Module;
         } else {
             dep_mod = await this.parseAsModuleFromFileInternal(
                 relativeModPath(mod, mod_path_node));
         }
         assert(dep_mod != null);
-        dep_mod.depBy(mod);
-        mod.dep(dep_mod);
+        this.linkModule(mod, dep_mod)
 
         /* Parsing external symbols */
         let import_symbols_node: Node | null =

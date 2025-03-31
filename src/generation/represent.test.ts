@@ -1,10 +1,18 @@
 import fc from 'fast-check';
 import { WGSLParser } from '../parser/parser';
+
 import { CircularExcept, Presentation } from './represent';
 import { Module } from '../module';
 import { ModuleQualifier, Obfuscator } from './token_processors';
+import { mod_group } from '../module_group';
 
 describe("Representation Unittests", () => {
+
+    let parser: WGSLParser = new WGSLParser();
+    parser.attach(mod_group);
+
+    afterEach(() => mod_group.reset());
+
     test("Basic Present", async () => {
         let source = (n:number) => {
             return `fn abs() { abs(${n}); };` };
@@ -25,8 +33,6 @@ describe("Representation Unittests", () => {
     })
 
     test("Recursively Present", async () => {
-        let parser: WGSLParser = new WGSLParser();
-
         let mod: Module | null =
             await parser.parseAsModule(
                 "./Test/wgsl_samples/A.wgsl");
@@ -37,8 +43,6 @@ describe("Representation Unittests", () => {
     })
 
     test("Circular Present", async () => {
-        let parser: WGSLParser = new WGSLParser();
-
         let mod: Module | null =
             await parser.parseAsModule(
                 "./Test/wgsl_samples/circular/A.wgsl");
