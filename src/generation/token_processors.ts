@@ -80,13 +80,13 @@ export class ModuleQualifier extends ComposableTokenOperator<TokenOPEnv>
     public readonly ident = "ModuleQualifier";
 
     private decorateWithModID(mod: Module, symbol: string): string {
-        return "__" + mod.ident + "_" + symbol;
+        return "__" + mod.sn + "_" + symbol;
     }
 
     private resolve(mod: Module, ext_symbol: string): string {
         const dep_mod_id = mod.symbolFrom(ext_symbol);
         assert(dep_mod_id != null);
-        const dep_mod = Module.all_by_id.get(dep_mod_id);
+        const dep_mod = Module.all_by_sn.get(dep_mod_id);
         assert(dep_mod != undefined);
         return this.decorateWithModID(dep_mod, ext_symbol);
     }

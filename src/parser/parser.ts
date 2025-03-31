@@ -66,6 +66,7 @@ export class WGSLParser {
             m = await this.parseAsModuleInternal(path, source);
         }
 
+
         if (m != null) {
             Analyzer.analyze(m);
         }
@@ -112,9 +113,6 @@ export class WGSLParser {
     }
 
     private importAllSymbols(mod: Module, dep_mod: Module) {
-        let current_dep_symbols =
-            mod.getExternalSymbols(dep_mod.ident) ?? [];
-
         /* Retrive all identifiers that defined in dep_mod */
         let s_ident: Searcher = new Searcher(
             dep_mod.tree.rootNode, 'ident');

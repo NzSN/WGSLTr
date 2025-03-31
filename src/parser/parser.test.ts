@@ -5,6 +5,8 @@ import { Searcher, WGSLParser } from './parser';
 import { Module } from '../module';
 import { Analyzer } from '../analyzer/analyzer';
 
+import path from 'path';
+
 describe("Parser Unittests", () => {
 
     test("Basic Parsing", async () => {
@@ -79,5 +81,16 @@ describe("Parser Unittests", () => {
         expect(mod_A?.circular_point.length == 2).toBeTruthy();
         expect(mod_A?.circular_point[0].path == path_B).toBeTruthy();
         expect(mod_A?.circular_point[1].path == path_C).toBeTruthy();
+    })
+
+    test("Global Unique Module", async () => {
+        let parser = new WGSLParser();
+        const path_B = "./Test/wgsl_samples/global_unique_module/Dir0/B.wgsl";
+        const path_C = "./Test/wgsl_samples/global_unique_module/C.wgsl";
+
+        await parser.parseAsModule(path_B);
+        await parser.parseAsModule(path_C);
+
+        expect(Module.all.size == 3).toBeTruthy();
     })
 })
