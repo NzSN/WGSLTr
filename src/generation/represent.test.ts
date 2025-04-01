@@ -13,25 +13,6 @@ describe("Representation Unittests", () => {
 
     afterEach(() => mod_group.reset());
 
-    test("Basic Present", async () => {
-        let source = (n:number) => {
-            return `fn abs() { abs(${n}); };` };
-        let parser: WGSLParser = new WGSLParser();
-
-        await fc.assert(fc.asyncProperty(fc.nat(), async (n:number) => {
-            let mod: Module | null = await parser.parseAsModule("M", source(n));
-
-            if (mod == null) return false;
-            let p: Presentation = new Presentation(mod);
-
-            let present = p.present(new ModuleQualifier()).reduce(
-                (acc,cur) => { return acc + cur.literal; },
-                "");
-
-            return present == source(n).replace(/\s/g, '');
-        }));
-    })
-
     test("Recursively Present", async () => {
         let mod: Module | null =
             await parser.parseAsModule(

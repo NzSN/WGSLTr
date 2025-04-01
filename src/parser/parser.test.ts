@@ -3,6 +3,7 @@ import { Tree, Node } from 'web-tree-sitter';
 import { Searcher, WGSLParser } from './parser';
 import { Module } from '../module';
 import { mod_group } from '../module_group';
+import { delay, waitUntil } from '../base/utility';
 
 import Path from 'path';
 import fs from 'fs';
@@ -100,19 +101,24 @@ describe("Parser Unittests", () => {
         expect(mod_group.size == 3).toBeTruthy();
     })
 
+    async function writeFileSync(path: string, content: string) {
+        let fd = fs.openSync(path, "w");
+        fs.writeSync(fd, content);
+        fs.close(fd);
+
+        // TODO: condition is not strong enough to assert
+        //       that content must be modified after this
+        //       expression.
+        await delay(50);
+    }
+
     test("Single Module Outdated", async () => {
         const path = "./Test/wgsl_samples/module_outdate/D.wgsl";
 
-        let fd = fs.openSync(path, "w+");
-        fs.writeSync(fd, "const pipi = 0;");
-        fs.close(fd);
-
+        await writeFileSync(path, "const pipi = 0;");
         const mod = await parser.parseAsModule(path);
 
-        fd = fs.openSync(path, "w+");
-        fs.writeSync(fd, "const pipi = 1;");
-        fs.close(fd);
-
+        await writeFileSync(path, "const pipi = 1;");
         const mod_new = await parser.parseAsModule(path);
 
         expect(!mod?.equal(mod_new as Module)).toBeTruthy();

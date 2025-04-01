@@ -114,7 +114,6 @@ export class Module implements Vertex {
         this._m_state = ModuleState.NORMAL;
 
         this._path = Path.resolve(path);
-        assert(fs.existsSync(this._path));
 
         this._tree = tree;
         this._sn = uniqueSN();
@@ -123,6 +122,7 @@ export class Module implements Vertex {
     }
 
     public static async build(path: ModPath, tree: Tree) {
+        assert(fs.existsSync(path));
         let m = new Module(path, tree);
         m._mtimeMs = (await fs.promises.stat(path)).mtimeMs;
         return m;

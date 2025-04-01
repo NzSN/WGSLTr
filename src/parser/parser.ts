@@ -94,15 +94,9 @@ export class WGSLParser extends Subject<Module>  {
         return mod;
     }
 
-    public async parseAsModule(path: string, source?: string): Promise<Module | null> {
-
+    public async parseAsModule(path: string): Promise<Module | null> {
         let m: Module | null = null;
-
-        if (source == undefined) {
-            m = await this.parseAsModuleFromFileInternal(path);
-        } else {
-            m = await this.parseAsModuleInternal(path, source);
-        }
+        m = await this.parseAsModuleFromFileInternal(path);
 
         if (m != null) {
             Analyzer.analyze(m);
