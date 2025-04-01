@@ -131,7 +131,37 @@ describe("Parser Unittests", () => {
                    .equal(mod_new as Module)).toBeTruthy();
     })
 
-    test("Module Outdated in graph", async () => {
+    test("Complex Module Outdated", async () => {
+        const path_A = "./Test/wgsl_samples/module_outdate/A.wgsl";
+        const path_B = "./Test/wgsl_samples/module_outdate/B.wgsl";
+        const path_C = "./Test/wgsl_samples/module_outdate/C.wgsl";
 
+        const mod_A = await parser.parseAsModule(path_A);
+        const mod_B = await parser.parseAsModule(path_B);
+        const mod_C = await parser.parseAsModule(path_C);
+
+        expect(mod_A != null).toBeTruthy();
+        expect(mod_B != null).toBeTruthy();
+        expect(mod_C != null).toBeTruthy();
+
+        mod_B?.forceOutdated();
+        const mod_B_1 = await parser.parseAsModule(path_B);
+
+        expect(!mod_B?.equal(mod_B_1 as Module)).toBeTruthy();
+
+        expect(mod_A?.isDepOn(mod_B_1 as Module)).toBeTruthy();
+        expect(!mod_A?.isDepOn(mod_B as Module)).toBeTruthy();
+        expect(mod_B_1?.isDepBy(mod_A as Module)).toBeTruthy();
+
+        expect(mod_B_1?.isDepOn(mod_C as Module)).toBeTruthy();
+        expect(mod_C?.isDepBy(mod_B_1 as Module)).toBeTruthy();
+
+        expect(mod_group.size == 3).toBeTruthy();
+        expect(mod_group.search_by_id(
+            mod_A?.ident as string)?.equal(mod_A as Module)).toBeTruthy();
+        expect(mod_group.search_by_id(
+            mod_B_1?.ident as string)?.equal(mod_B_1 as Module)).toBeTruthy();
+        expect(mod_group.search_by_id(
+            mod_C?.ident as string)?.equal(mod_C as Module)).toBeTruthy();
     })
 })

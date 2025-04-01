@@ -107,7 +107,7 @@ export class WGSLParser extends Subject<Module>  {
 
     // Build Relation such that l_mod is depend on r_mod
     private linkModule(l_mod: Module, r_mod: Module) {
-        if (l_mod.isDepOn(r_mod)) {
+        if (l_mod.isDepOn(r_mod, false)) {
             const dep_mod = l_mod.getDep(r_mod.ident);
             if (dep_mod?.equal(r_mod)) {
                 return true;
@@ -116,7 +116,7 @@ export class WGSLParser extends Subject<Module>  {
                 l_mod.dep(r_mod);
             }
         }
-        if (r_mod.isDepBy(l_mod)) {
+        if (r_mod.isDepBy(l_mod, false)) {
             const dep_by_mod = r_mod.getDepBy(l_mod.ident);
             if (dep_by_mod?.equal(l_mod)) {
                 return true;
@@ -125,7 +125,7 @@ export class WGSLParser extends Subject<Module>  {
                 r_mod.depBy(l_mod);
             }
         }
-        if (!l_mod.isDepOn(r_mod) && !r_mod.isDepBy(l_mod)) {
+        if (!l_mod.isDepOn(r_mod, false) && !r_mod.isDepBy(l_mod, false)) {
             l_mod.dep(r_mod);
             r_mod.depBy(l_mod);
         }

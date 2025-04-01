@@ -51,7 +51,8 @@ export class Module implements Vertex {
 
     public equal(mod: Module) {
         return this._ident == mod._ident &&
-            this._mtimeMs == mod._mtimeMs;
+            this._mtimeMs == mod._mtimeMs &&
+            this._sn == mod._sn;
     }
 
     public destruct() {
@@ -135,6 +136,10 @@ export class Module implements Vertex {
         return hash.digest('base64');
     }
 
+    public forceOutdated() {
+        this._m_state = ModuleState.OUT_OF_DATE;
+    }
+
     public async isOutOfDate(): Promise<boolean> {
         if (this._m_state == ModuleState.OUT_OF_DATE) {
             return true;
@@ -176,14 +181,20 @@ export class Module implements Vertex {
         return this._tree.rootNode;
     }
 
-    public isDepOn(may_dep: Module) {
-        return this._deps.find((m: Module) => {
+    public isDepOn(may_dep: Module, strict: boolean = true) {
+        let mod = this._deps.find((m: Module) => {
             return may_dep.path == m.path;
-        }) != undefined;
+        });
+        if (mod == undefined) {
+            return false;
+        } else if (!strict) {
+            return true;
+        }
+        return mod.equal(may_dep);
     }
 
-    public isDepBy(may_dep_by: Module) {
-        return may_dep_by.isDepOn(this);
+    public isDepBy(may_dep_by: Module, strict: boolean = true) {
+        return may_dep_by.isDepOn(this, strict);
     }
 
     public getAllDepBy() {
