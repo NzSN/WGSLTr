@@ -1,6 +1,6 @@
 import { strict as assert } from 'assert';
 import { Node, TreeCursor } from 'web-tree-sitter';
-import { Module } from "../module";
+import { ModID, Module } from "../module";
 import { Searcher, isLeave, preorderIterate } from "../parser/parser";
 import { importModPathStr } from '../parser/utility';
 import { Token, TokenOPEnv, ComposableTokenOperator } from './token_processors';
@@ -81,11 +81,30 @@ export class CircularExcept extends Error {
     }
 }
 
+
+export class PresentationCache {
+    public cache: Map<ModID, PresentNode> = new Map();
+}
+
+class PresentNode {
+    private _nodes: (Token | PresentNode)[] = [];
+
+    public appendNode(node: Token | PresentNode) {
+        this._nodes.push(node);
+    }
+
+    public get nodes() {
+        return this._nodes;
+    }
+}
+
 export class Presentation {
     public readonly module: Module;
     private _cwd: string = "";
     private _import_filter: ImportStmtFilter = new ImportStmtFilter();
     private _op_env: TokenOPEnv;
+
+    private p_node: PresentNode | null = null;
 
     constructor(m: Module) {
         this.module = m;

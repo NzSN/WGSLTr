@@ -33,7 +33,7 @@ export class WGSLParser extends Subject<Module>  {
 
     private async parseAsModuleFromFileInternal(path: string): Promise<Module | null> {
         let outdated_mod: Module | null = null;
-        let need_rebuild_graph = false;
+        let for_update = false;
 
         const abs_path = Path.resolve(path);
         const mod_id = Module.getIdentByPath(abs_path);
@@ -47,33 +47,37 @@ export class WGSLParser extends Subject<Module>  {
                     mod_group.search_by_id(mod_id) as Module;
                 assert(outdated_mod != null);
                 mod_group.destruct_by_id(mod_id);
-                need_rebuild_graph = true;
+                for_update = true;
             }
         }
         // Module not exists or out of date
         let source_content = readFileSync(
             path, {encoding: 'utf8', flag: 'r'});
-        const mod = await this.parseAsModuleInternal(abs_path, source_content);
+        const mod = await this.parseAsModuleInternal(
+            abs_path, source_content, for_update);
 
-        if (need_rebuild_graph) {
+        if (for_update) {
             assert(outdated_mod != null);
             assert(mod != null);
 
             outdated_mod.getAllDepBy().forEach((m: Module) => {
                 this.linkModule(m, mod);
             });
+            mod.asModule(outdated_mod);
         }
         return mod;
     }
 
     private async parseAsModuleInternal(
-        path: string, source: string): Promise<Module | null> {
+        path: string,
+        source: string,
+        for_update: boolean = false): Promise<Module | null> {
 
         let tree = await this.parse(source);
 
         assert(tree != null);
 
-        let mod = await Module.build(path, tree);
+        let mod = await Module.build(path, tree, for_update);
         this.notifyAllObservers(mod);
 
         let s_import: Searcher = new Searcher(

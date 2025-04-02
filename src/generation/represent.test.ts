@@ -3,11 +3,9 @@ import { WGSLParser } from '../parser/parser';
 
 import { CircularExcept, Presentation } from './represent';
 import { Module } from '../module';
-import { ModuleQualifier, Obfuscator } from './token_processors';
 import { mod_group } from '../module_group';
 
 describe("Representation Unittests", () => {
-
     let parser: WGSLParser = new WGSLParser();
     parser.attach(mod_group);
 
@@ -36,5 +34,9 @@ describe("Representation Unittests", () => {
             }
         }
         fail();
+    })
+
+    test("Represent Cache", async () => {
+
     })
 })

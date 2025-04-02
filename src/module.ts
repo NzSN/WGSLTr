@@ -52,7 +52,7 @@ export class Module implements Vertex {
     public equal(mod: Module) {
         return this._ident == mod._ident &&
             this._mtimeMs == mod._mtimeMs &&
-            this._sn == mod._sn;
+            this == mod;
     }
 
     public destruct() {
@@ -111,22 +111,31 @@ export class Module implements Vertex {
         return this._tree;
     }
 
-    constructor(path: ModPath, tree: Tree) {
+    constructor(path: ModPath, tree: Tree, sn: string) {
         this._m_state = ModuleState.NORMAL;
 
         this._path = Path.resolve(path);
 
         this._tree = tree;
-        this._sn = uniqueSN();
+        this._sn = sn;
 
         this._ident = Module.getIdentByPath(this._path);
     }
 
-    public static async build(path: ModPath, tree: Tree) {
+    public static async build(path: ModPath, tree: Tree,
+                              for_update: boolean = false) {
         assert(fs.existsSync(path));
-        let m = new Module(path, tree);
+
+        let sn = for_update ? "NAN" : uniqueSN();
+
+        let m = new Module(path, tree, sn);
         m._mtimeMs = (await fs.promises.stat(path)).mtimeMs;
         return m;
+    }
+
+    public asModule(mod: Module) {
+        this._ident = mod._ident;
+        this._sn = mod._sn;
     }
 
     public static getIdentByPath(path: string): string {

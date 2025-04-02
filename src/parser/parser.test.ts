@@ -121,6 +121,7 @@ describe("Parser Unittests", () => {
         await writeFileSync(path, "const pipi = 1;");
         const mod_new = await parser.parseAsModule(path);
 
+        expect(mod?.sn == mod_new?.sn).toBeTruthy();
         expect(!mod?.equal(mod_new as Module)).toBeTruthy();
         expect(mod?.rootNode.text != mod_new?.rootNode.text).toBeTruthy();
         expect(mod_group.size == 1).toBeTruthy();
@@ -148,6 +149,7 @@ describe("Parser Unittests", () => {
         const mod_B_1 = await parser.parseAsModule(path_B);
 
         expect(!mod_B?.equal(mod_B_1 as Module)).toBeTruthy();
+        expect(mod_B?.sn == mod_B_1?.sn).toBeTruthy();
 
         expect(mod_A?.isDepOn(mod_B_1 as Module)).toBeTruthy();
         expect(!mod_A?.isDepOn(mod_B as Module)).toBeTruthy();
