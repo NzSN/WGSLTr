@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { Observer } from "./base/observer";
+import { Observer, Event } from "./base/observer";
 import { ModPath, ModID, Module } from "./module";
 
 export class ModuleGroup implements Observer<Module> {
@@ -63,8 +63,15 @@ export class ModuleGroup implements Observer<Module> {
         this.modules.delete(path);
     }
 
-    public update(m: Module): void {
-        this.addModule(m);
+    public update(event: Event, m: Module): void {
+        switch (event) {
+            case Event.PARSER_MODULE_CREATED:
+                this.addModule(m);
+                break;
+            case Event.PARSER_MODULE_OUTDATED:
+                this.destruct_by_id(m.ident);
+                break;
+        }
     }
 }
 

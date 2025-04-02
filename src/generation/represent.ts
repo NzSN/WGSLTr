@@ -6,6 +6,7 @@ import { importModPathStr } from '../parser/utility';
 import { Token, TokenOPEnv, ComposableTokenOperator } from './token_processors';
 import { Semantic } from '../analyzer/semantic';
 import { mod_group } from '../module_group';
+import { Observer, Event } from '../base/observer';
 
 enum FilterState {
     Ready,
@@ -81,30 +82,44 @@ export class CircularExcept extends Error {
     }
 }
 
+export class PresentationCache implements Observer<Module> {
+    public cache: Map<ModID, Presentation> = new Map();
 
-export class PresentationCache {
-    public cache: Map<ModID, PresentNode> = new Map();
+    public update(event: Event, m: Module): void {
+        switch (event) {
+            case Event.PARSER_MODULE_OUTDATED:
+                let node = this.cache.get(m.ident);
+                if (node != undefined) {
+                    node.invalidate();
+                    this.cache.delete(m.ident);
+                }
+                break;
+            default:
+                /* Ignore rest of events */
+        }
+    }
 }
 
-class PresentNode {
-    private _nodes: (Token | PresentNode)[] = [];
-
-    public appendNode(node: Token | PresentNode) {
-        this._nodes.push(node);
-    }
-
-    public get nodes() {
-        return this._nodes;
-    }
+enum PresentStat {
+    VALID,
+    INVALID,
 }
-
 export class Presentation {
     public readonly module: Module;
     private _cwd: string = "";
     private _import_filter: ImportStmtFilter = new ImportStmtFilter();
     private _op_env: TokenOPEnv;
 
-    private p_node: PresentNode | null = null;
+    private _stat: PresentStat = PresentStat.VALID;
+    private _nodes: (Token | Presentation)[] | null = null;
+
+    public validate() {
+        this._stat = PresentStat.VALID;
+    }
+
+    public invalidate() {
+        this._stat = PresentStat.INVALID;
+    }
 
     constructor(m: Module) {
         this.module = m;

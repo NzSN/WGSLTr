@@ -1,6 +1,13 @@
 /* Implement observer pattern */
+
+export enum Event {
+    /* Parser Event */
+    PARSER_MODULE_CREATED,
+    PARSER_MODULE_OUTDATED,
+}
+
 export interface Observer<T> {
-    update(x: T): void;
+    update(event: Event, x: T): void;
 }
 
 export class Subject<T> {
@@ -14,9 +21,9 @@ export class Subject<T> {
         this.observers.push(observer);
     }
 
-    public notifyAllObservers(x: T): void {
+    public notifyAllObservers(event: Event, x: T): void {
         for (let observer of this.observers) {
-            observer.update(x);
+            observer.update(event, x);
         }
     }
 }

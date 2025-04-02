@@ -7,7 +7,7 @@ import { relativeModPath } from './utility';
 import { Analyzer } from '../analyzer/analyzer';
 import { mod_group } from '../module_group';
 import Path from 'path';
-import { Subject } from '../base/observer';
+import { Subject, Event } from '../base/observer';
 
 type WGSLNodeType = string;
 
@@ -46,7 +46,11 @@ export class WGSLParser extends Subject<Module>  {
                 outdated_mod =
                     mod_group.search_by_id(mod_id) as Module;
                 assert(outdated_mod != null);
-                mod_group.destruct_by_id(mod_id);
+
+                this.notifyAllObservers(
+                    Event.PARSER_MODULE_OUTDATED,
+                    outdated_mod)
+
                 for_update = true;
             }
         }
@@ -78,7 +82,7 @@ export class WGSLParser extends Subject<Module>  {
         assert(tree != null);
 
         let mod = await Module.build(path, tree, for_update);
-        this.notifyAllObservers(mod);
+        this.notifyAllObservers(Event.PARSER_MODULE_CREATED, mod);
 
         let s_import: Searcher = new Searcher(
             tree.rootNode, 'import');
