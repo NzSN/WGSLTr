@@ -85,6 +85,10 @@ export class CircularExcept extends Error {
 export class PresentationCache implements Observer<Module> {
     public cache: Map<ModID, Presentation> = new Map();
 
+    public setCache(ident: ModID, present: Presentation) {
+        this.cache.set(ident, present);
+    }
+
     public update(event: Event, m: Module): void {
         switch (event) {
             case Event.PARSER_MODULE_OUTDATED:
@@ -105,13 +109,17 @@ enum PresentStat {
     INVALID,
 }
 export class Presentation {
-    public readonly module: Module;
+    private _module: Module;
     private _cwd: string = "";
     private _import_filter: ImportStmtFilter = new ImportStmtFilter();
     private _op_env: TokenOPEnv;
 
     private _stat: PresentStat = PresentStat.VALID;
     private _nodes: (Token | Presentation)[] | null = null;
+
+    public get module() {
+        return this._module;
+    }
 
     public validate() {
         this._stat = PresentStat.VALID;
@@ -122,7 +130,7 @@ export class Presentation {
     }
 
     constructor(m: Module) {
-        this.module = m;
+        this._module = m;
 
         if (this.module.circular_point.length > 0) {
             throw new CircularExcept();
