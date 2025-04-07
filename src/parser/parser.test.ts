@@ -46,7 +46,7 @@ describe("Parser Unittests", () => {
 
     test("Recursively Parsing", async () => {
         const path = "./Test/wgsl_samples/A.wgsl";
-        const path_of_B = "./Test/wgsl_samples/B.wgsl";
+        const path_of_B = "./Test/wgsl_samples/B2.wgsl";
         let M = await parser.parseAsModule(path);
 
         expect(mod_group.size == 2).toBeTruthy();

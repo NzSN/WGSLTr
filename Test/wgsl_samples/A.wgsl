@@ -1,4 +1,4 @@
-import * from './B';
+import * from './B2';
 
 struct Uniforms {
   matrix : mat4x4<f32>,
